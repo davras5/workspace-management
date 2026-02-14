@@ -47,6 +47,58 @@ const ICONS = {
   misc: `<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.9"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="8" x2="12" y2="16"/></svg>`
 };
 
+// Unsplash placeholder images per product ID
+const PRODUCT_IMAGES = {
+  1:  'photo-1503602642458-232111445657',  // bar stool
+  2:  'photo-1567538096630-e0c55bd6374c',     // bistro chair
+  3:  'photo-1580480055273-228ff5388ef8',  // office chair dark
+  4:  'photo-1616627547584-bf28cee262db',  // office chair blue
+  5:  'photo-1586023492125-27b2c045efd7',  // executive chair
+  6:  'photo-1506439773649-6e0eb8cfb237',  // stacking chair
+  7:  'photo-1561677978-583a8c7a4b43',     // wood chair classic
+  8:  'photo-1549187774-b4e9b0445b41',     // wood stacking chair
+  9:  'photo-1592078615290-033ee584e267',   // cantilever chair
+  10: 'photo-1595428774223-ef52624120d2',   // USM shelving
+  11: 'photo-1518455027359-f3f8164ba6bd',   // desk workspace
+  12: 'photo-1573164713988-8665fc963095',   // desk lamp
+  13: 'photo-1595526114035-0d45ed16cfbf',   // rolling stool
+  14: 'photo-1493663284031-b7e3aefcae8e',      // sideboard
+  15: 'photo-1462826303086-329426d1aef5',   // conference table
+  16: 'photo-1558997519-83ea9252edf8',      // filing cabinet
+  17: 'photo-1580480055273-228ff5388ef8',   // office chair (used)
+  18: 'photo-1595428774223-ef52624120d2',   // USM shelf (used)
+  19: 'photo-1592078615290-033ee584e267',   // visitor chair (used)
+  20: 'photo-1598300042247-d088f8ab3a91',   // saddle chair
+  21: 'photo-1580480055273-228ff5388ef8',   // task chair
+  22: 'photo-1581539250439-c96689b516dd',   // conference chair
+  23: 'photo-1611269154421-4e27233ac5c7',   // USM Kitos desk
+  24: 'photo-1593642632559-0c6d3fc62b89',   // sit-stand desk
+  25: 'photo-1532372576444-dda954194ad0',   // side table
+  26: 'photo-1577412647305-991150c7d163',   // standing table
+  27: 'photo-1513506003901-1e6a229e2d15',   // floor lamp
+  28: 'photo-1558997519-83ea9252edf8',      // filing cabinet
+  29: 'photo-1594620302200-9a762244a156',   // wall shelf
+  30: 'photo-1594620302200-9a762244a156',   // bookshelf
+  31: 'photo-1493663284031-b7e3aefcae8e',      // pedestal
+  32: 'photo-1493663284031-b7e3aefcae8e',      // USM pedestal
+  33: 'photo-1524758631624-e2822e304c36',   // coat stand
+  34: 'photo-1524758631624-e2822e304c36',   // flipchart
+  35: 'photo-1555041469-a586c61ea9bc',      // sofa
+  36: 'photo-1497215842964-222b430dc094',   // acoustic panel
+  37: 'photo-1518455027359-f3f8164ba6bd',   // desk (used)
+  38: 'photo-1573164713988-8665fc963095',   // lamp (used)
+  39: 'photo-1581539250439-c96689b516dd',   // conference chair (used)
+  40: 'photo-1493663284031-b7e3aefcae8e',      // pedestal (used)
+};
+
+function getProductImage(product) {
+  const photoId = PRODUCT_IMAGES[product.id];
+  if (photoId) {
+    return `<img src="https://images.unsplash.com/${photoId}?w=600&h=400&fit=crop&auto=format&q=80" alt="${product.name}" loading="lazy">`;
+  }
+  return getProductIcon(product);
+}
+
 function getProductIcon(product) {
   const cat = product.category;
   if (cat === 'stuehle') return ICONS.chair;
@@ -129,6 +181,24 @@ function countProductsInCategory(catId) {
   return PRODUCTS.filter(p => !p.isCircular && (ids.includes(p.category) || ids.includes(p.subcategory))).length;
 }
 
+// ---- BREADCRUMB HELPER ----
+// Usage: renderBreadcrumb(['Produktkatalog', "navigateTo('shop')"], ['Stühle'])
+// Last item = current page (no link). Previous items = links.
+function renderBreadcrumb(...items) {
+  const SEP = ` <span class="breadcrumb__sep">${CHEVRON_RIGHT}</span> `;
+  let html = `<a href="#" onclick="navigateTo('home');return false">Home</a>`;
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    html += SEP;
+    if (i < items.length - 1 && item.length > 1) {
+      html += `<a href="#" onclick="${item[1]};return false">${item[0]}</a>`;
+    } else {
+      html += `<span class="breadcrumb__current">${item[0]}</span>`;
+    }
+  }
+  return `<nav class="breadcrumb" aria-label="Breadcrumb">${html}</nav>`;
+}
+
 function findCategory(id) {
   function find(cats) {
     for (const c of cats) {
@@ -183,7 +253,30 @@ function filterProducts() {
 }
 
 function filterCircularProducts() {
-  return PRODUCTS.filter(p => p.isCircular);
+  let filtered = PRODUCTS.filter(p => p.isCircular);
+
+  if (state.activeCategory !== 'alle') {
+    const ids = getAllSubcategoryIds(state.activeCategory);
+    filtered = filtered.filter(p => ids.includes(p.category) || ids.includes(p.subcategory));
+  }
+
+  if (state.searchQuery) {
+    const q = state.searchQuery.toLowerCase();
+    filtered = filtered.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      p.description.toLowerCase().includes(q) ||
+      p.brand.toLowerCase().includes(q)
+    );
+  }
+
+  switch (state.sortBy) {
+    case 'name-asc':  filtered.sort((a, b) => a.name.localeCompare(b.name)); break;
+    case 'name-desc': filtered.sort((a, b) => b.name.localeCompare(a.name)); break;
+    case 'price-asc': filtered.sort((a, b) => a.price - b.price); break;
+    case 'price-desc': filtered.sort((a, b) => b.price - a.price); break;
+  }
+
+  return filtered;
 }
 
 function debounce(fn, ms) {
@@ -201,12 +294,13 @@ function render() {
   const app = document.getElementById('app');
 
   // Update nav active states
-  document.querySelectorAll('.app-nav__btn').forEach(btn => {
-    const nav = btn.dataset.nav;
-    if (nav === state.page) {
-      btn.classList.add('app-nav__btn--active');
+  const activePage = ['scan', 'erfassen', 'charta'].includes(state.page) ? 'circular' : state.page;
+  document.querySelectorAll('.app-nav__link').forEach(link => {
+    const nav = link.dataset.nav;
+    if (nav === activePage) {
+      link.classList.add('app-nav__link--active');
     } else {
-      btn.classList.remove('app-nav__btn--active');
+      link.classList.remove('app-nav__link--active');
     }
   });
 
@@ -220,70 +314,49 @@ function render() {
     case 'shop': app.innerHTML = renderShop(); attachShopEvents(); break;
     case 'product': app.innerHTML = renderProductDetail(state.productId); break;
     case 'planung': app.innerHTML = renderPlanung(); break;
-    case 'circular': app.innerHTML = renderCircular(); break;
+    case 'grundriss': app.innerHTML = renderGrundriss(); break;
+    case 'circular': app.innerHTML = renderCircular(); attachShopEvents(); break;
+    case 'scan': app.innerHTML = renderScan(); break;
+    case 'erfassen': app.innerHTML = renderErfassen(); break;
+    case 'charta': app.innerHTML = renderCharta(); break;
     default: app.innerHTML = renderShop(); attachShopEvents();
   }
 }
 
 // ---- HOME ----
 function renderHome() {
-  const totalProducts = PRODUCTS.filter(p => !p.isCircular).length;
-  const circularCount = PRODUCTS.filter(p => p.isCircular).length;
-  const brands = [...new Set(PRODUCTS.map(p => p.brand))].length;
-
   return `
-    <div class="page-container" style="padding-top:16px;padding-bottom:40px;">
+    <div class="page-container page-container--with-top-pad" id="mainContent">
+      ${renderBreadcrumb(['Home'])}
       <div class="page-hero">
         <h1 class="page-hero__title">Workspace Management</h1>
         <p class="page-hero__subtitle">Willkommen beim Bundesamt f\u00fcr Bauten und Logistik. Planen, bestellen und verwalten Sie Ihre B\u00fcroausstattung.</p>
       </div>
 
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="stat-card__value">${totalProducts}</div>
-          <div class="stat-card__label">Produkte</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card__value">${brands}</div>
-          <div class="stat-card__label">Marken</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card__value">${CATEGORIES.length - 1}</div>
-          <div class="stat-card__label">Kategorien</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card__value stat-card__value--green">${circularCount}</div>
-          <div class="stat-card__label">Circular Objekte</div>
-        </div>
-      </div>
-
       <div class="tile-grid">
-        <div class="tile" onclick="navigateTo('shop')" role="button" tabindex="0">
-          <div class="tile__icon">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-          </div>
-          <h3 class="tile__title">Produktkatalog</h3>
-          <p class="tile__desc">B\u00fcrom\u00f6bel und Ausstattung aus dem Sortiment bestellen</p>
+        <div class="card card--centered card--interactive" onclick="navigateTo('shop')" role="button" tabindex="0">
+          <h3 class="card__title">Produktkatalog</h3>
+          <p class="card__desc">Entdecken Sie unser Sortiment an B\u00fcrom\u00f6beln, Sitzm\u00f6beln, Beleuchtung und Zubeh\u00f6r f\u00fcr Ihren Arbeitsplatz. Alle Produkte entsprechen den Standards der Bundesverwaltung.</p>
+          <div class="card__arrow"><span class="card__arrow-icon">&rarr;</span></div>
         </div>
-        <div class="tile" onclick="navigateTo('planung')" role="button" tabindex="0">
-          <div class="tile__icon">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
-          </div>
-          <h3 class="tile__title">B\u00fcroplanung</h3>
-          <p class="tile__desc">Workspaces gestalten und R\u00e4ume planen</p>
+        <div class="card card--centered card--interactive" onclick="navigateTo('planung')" role="button" tabindex="0">
+          <h3 class="card__title">Arbeitspl\u00e4tze gestalten</h3>
+          <p class="card__desc">Gestalten Sie Ihre Workspaces mit Stilwelten, Planungsbeispielen und CAD-Daten. Finden Sie Inspiration und Vorlagen f\u00fcr Ihre B\u00fcroplanung.</p>
+          <div class="card__arrow"><span class="card__arrow-icon">&rarr;</span></div>
         </div>
-        <div class="tile tile--green" onclick="navigateTo('circular')" role="button" tabindex="0">
-          <div class="tile__icon">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21.5 2v6h-6M2.5 22v-6h6"/><path d="M2.5 16A10 10 0 0118 3.5"/><path d="M21.5 8A10 10 0 016 20.5"/></svg>
-          </div>
-          <h3 class="tile__title">Circular-Hub</h3>
-          <p class="tile__desc">Gebrauchte M\u00f6bel wiederverwenden statt entsorgen</p>
+        <div class="card card--centered card--interactive" onclick="navigateTo('circular')" role="button" tabindex="0">
+          <h3 class="card__title">Gebrauchte M\u00f6bel</h3>
+          <p class="card__desc">Gebrauchte M\u00f6bel wiederverwenden statt entsorgen. Scannen Sie bestehende Objekte, erfassen Sie neue und st\u00f6bern Sie im Angebot verf\u00fcgbarer Gebrauchtm\u00f6bel.</p>
+          <div class="card__arrow"><span class="card__arrow-icon">&rarr;</span></div>
         </div>
       </div>
 
-      <h2 class="section-heading">Neuheiten <span class="section-heading__line"></span></h2>
-      <div class="product-grid" style="margin-bottom:24px;">
+      <h2 class="section-heading">Neuheiten</h2>
+      <div class="product-grid product-grid--spaced">
         ${PRODUCTS.filter(p => p.isNew && !p.isCircular).slice(0, 6).map(p => renderProductCard(p)).join('')}
+      </div>
+      <div class="section-link">
+        <a href="#/shop" class="section-link__a" onclick="navigateTo('shop');return false">Alle Produkte einsehen &rarr;</a>
       </div>
     </div>
   `;
@@ -316,15 +389,18 @@ function renderShop() {
   const catLabel = getCategoryLabel(state.activeCategory);
   const parent = getParentCategory(state.activeCategory);
 
-  let breadcrumb = `<a href="#" onclick="setCategory('alle');return false">Produkte</a>`;
+  const bcItems = [['Produktkatalog', "setCategory('alle')"]];
   if (state.activeCategory !== 'alle') {
     if (parent) {
-      breadcrumb += ` <span class="breadcrumb__sep">${CHEVRON_RIGHT}</span> <a href="#" onclick="setCategory('${parent.id}');return false">${parent.label}</a>`;
+      bcItems.push([parent.label, `setCategory('${parent.id}')`]);
     }
-    breadcrumb += ` <span class="breadcrumb__sep">${CHEVRON_RIGHT}</span> <span class="breadcrumb__current">${catLabel}</span>`;
+    bcItems.push([catLabel]);
   }
 
   return `
+    <div class="page-container page-container--with-top-pad page-container--no-bottom">
+      ${renderBreadcrumb(...bcItems)}
+    </div>
     <div class="app-layout">
       <aside class="sidebar" role="navigation" aria-label="Kategorien">
         <div class="sidebar__title">Kategorien</div>
@@ -333,7 +409,6 @@ function renderShop() {
         </div>
       </aside>
       <main class="main-content" id="mainContent">
-        <nav class="breadcrumb" aria-label="Breadcrumb">${breadcrumb}</nav>
         <div class="toolbar">
           <div class="search-bar">
             <input class="search-bar__input" type="search" placeholder="Suchen..." id="searchInput" value="${escapeHtml(state.searchQuery)}" aria-label="Produkte suchen">
@@ -366,20 +441,19 @@ function renderShop() {
 // ---- PRODUCT CARD ----
 function renderProductCard(p) {
   return `
-    <div class="product-card" onclick="navigateTo('product',${p.id})" tabindex="0" role="button" aria-label="${escapeHtml(p.name)}">
-      <div class="product-card__image">
-        ${getProductIcon(p)}
-        ${p.isNew ? '<span class="product-card__badge product-card__badge--new">Neu</span>' : ''}
-        ${p.isCircular ? '<span class="product-card__badge product-card__badge--circular">Gebraucht</span>' : ''}
+    <div class="card card--product" onclick="navigateTo('product',${p.id})" tabindex="0" role="button" aria-label="${escapeHtml(p.name)}">
+      <div class="card__image card__image--placeholder">
+        ${getProductImage(p)}
+        ${p.isNew ? '<span class="card__badge card__badge--new">Neu</span>' : ''}
+        ${p.isCircular ? '<span class="card__badge card__badge--circular">Gebraucht</span>' : ''}
       </div>
-      <div class="product-card__body">
-        <div class="product-card__name">${escapeHtml(p.name)}</div>
-        <div class="product-card__desc">${escapeHtml(p.description)}</div>
-        <div class="product-card__price">${p.currency} ${p.price.toFixed(2)}</div>
+      <div class="card__body">
+        <div class="card__title">${escapeHtml(p.name)}</div>
+        <div class="card__desc">${escapeHtml(p.description)}</div>
+        <div class="card__price">${p.currency} ${p.price.toFixed(2)}</div>
       </div>
-      <div class="product-card__footer">
-        <span class="product-card__brand">${escapeHtml(p.brand)}</span>
-        <button class="btn btn--primary btn--sm" onclick="event.stopPropagation();navigateTo('product',${p.id})">Bestellen</button>
+      <div class="card__footer">
+        <span class="card__brand">${escapeHtml(p.brand)}</span>
       </div>
     </div>
   `;
@@ -390,10 +464,8 @@ function renderProductDetail(id) {
   const p = PRODUCTS.find(x => x.id === id);
   if (!p) {
     return `
-      <div class="page-container" id="mainContent" style="padding-top:16px;padding-bottom:40px;">
-        <nav class="breadcrumb" aria-label="Breadcrumb">
-          <a href="#" onclick="navigateTo('shop');return false">Produkte</a>
-        </nav>
+      <div class="page-container page-container--with-top-pad" id="mainContent">
+        ${renderBreadcrumb(['Produktkatalog', "navigateTo('shop')"], ['Nicht gefunden'])}
         <div class="no-results">
           <div class="no-results__icon">${ICONS.placeholder}</div>
           <p class="no-results__text">Produkt nicht gefunden.</p>
@@ -405,28 +477,28 @@ function renderProductDetail(id) {
   const catLabel = getCategoryLabel(p.subcategory) || getCategoryLabel(p.category);
   const parentCat = getParentCategory(p.subcategory);
 
-  let breadcrumb = `<a href="#" onclick="navigateTo('shop');return false">Produkte</a>`;
+  const bcItems = [['Produktkatalog', "navigateTo('shop')"]];
   if (parentCat) {
-    breadcrumb += ` <span class="breadcrumb__sep">${CHEVRON_RIGHT}</span> <a href="#" onclick="setCategory('${parentCat.id}');return false">${parentCat.label}</a>`;
+    bcItems.push([parentCat.label, `setCategory('${parentCat.id}')`]);
   }
   if (p.subcategory && p.subcategory !== p.category) {
-    breadcrumb += ` <span class="breadcrumb__sep">${CHEVRON_RIGHT}</span> <a href="#" onclick="setCategory('${p.subcategory}');return false">${catLabel}</a>`;
+    bcItems.push([catLabel, `setCategory('${p.subcategory}')`]);
   } else {
-    breadcrumb += ` <span class="breadcrumb__sep">${CHEVRON_RIGHT}</span> <a href="#" onclick="setCategory('${p.category}');return false">${getCategoryLabel(p.category)}</a>`;
+    bcItems.push([getCategoryLabel(p.category), `setCategory('${p.category}')`]);
   }
-  breadcrumb += ` <span class="breadcrumb__sep">${CHEVRON_RIGHT}</span> <span class="breadcrumb__current">${escapeHtml(p.name)}</span>`;
+  bcItems.push([escapeHtml(p.name)]);
 
   const condition = p.isCircular ? 'Gebraucht \u2013 guter Zustand' : 'Neu';
   const articleNr = 'ART-' + String(p.id).padStart(5, '0');
 
   return `
-    <div class="page-container" id="mainContent" style="padding-top:16px;padding-bottom:40px;">
-      <nav class="breadcrumb" aria-label="Breadcrumb">${breadcrumb}</nav>
+    <div class="page-container page-container--with-top-pad" id="mainContent">
+      ${renderBreadcrumb(...bcItems)}
       <div class="product-detail">
         <div class="product-detail__image">
-          ${getProductIcon(p).replace(/width="\d+"/, 'width="96"').replace(/height="\d+"/, 'height="96"')}
-          ${p.isNew ? '<span class="product-card__badge product-card__badge--new">Neu</span>' : ''}
-          ${p.isCircular ? '<span class="product-card__badge product-card__badge--circular">Gebraucht</span>' : ''}
+          ${getProductImage(p)}
+          ${p.isNew ? '<span class="card__badge card__badge--new">Neu</span>' : ''}
+          ${p.isCircular ? '<span class="card__badge card__badge--circular">Gebraucht</span>' : ''}
         </div>
         <div class="product-detail__info">
           <h1 class="product-detail__title">${escapeHtml(p.name)}</h1>
@@ -458,109 +530,163 @@ function renderProductDetail(id) {
 // ---- PLANUNG ----
 function renderPlanung() {
   const stilwelten = [
-    { title: "Fokus-Arbeitsplatz", desc: "Konzentriertes Arbeiten mit Akustik-Elementen", color: "linear-gradient(135deg, #004B6E, #006699)", icon: "\u25CE" },
-    { title: "Kollaborationszone", desc: "Offene Bereiche f\u00fcr Teamarbeit und Workshops", color: "linear-gradient(135deg, #3E8A27, #6DBF55)", icon: "\u25A3" },
-    { title: "Lounge & Empfang", desc: "Repr\u00e4sentative R\u00e4ume mit Wohncharakter", color: "linear-gradient(135deg, #6B4C8A, #9B7BBD)", icon: "\u25C7" },
-    { title: "Konferenz & Meeting", desc: "Professionelle Besprechungsr\u00e4ume", color: "linear-gradient(135deg, #C46B00, #E89F00)", icon: "\u25A1" },
-    { title: "Flex-Desk", desc: "Shared Desks mit Buchungssystem", color: "linear-gradient(135deg, #1B7A8A, #2AAFBF)", icon: "\u25CB" },
-    { title: "Bibliothek & Archiv", desc: "Ruhezonen mit Regal-Systemen", color: "linear-gradient(135deg, #8B4513, #A0522D)", icon: "\u25A4" }
+    { title: "Fokus-Arbeitsplatz", desc: "Konzentriertes Arbeiten mit Akustik-Elementen", image: "photo-1497366216548-37526070297c" },
+    { title: "Kollaborationszone", desc: "Offene Bereiche f\u00fcr Teamarbeit und Workshops", image: "photo-1497215842964-222b430dc094" },
+    { title: "Lounge & Empfang", desc: "Repr\u00e4sentative R\u00e4ume mit Wohncharakter", image: "photo-1524758631624-e2822e304c36" },
+    { title: "Konferenz & Meeting", desc: "Professionelle Besprechungsr\u00e4ume", image: "photo-1462826303086-329426d1aef5" },
+    { title: "Flex-Desk", desc: "Shared Desks mit Buchungssystem", image: "photo-1593642632559-0c6d3fc62b89" },
+    { title: "Bibliothek & Archiv", desc: "Ruhezonen mit Regal-Systemen", image: "photo-1507842217343-583bb7270b66" }
   ];
 
   return `
-    <div class="page-container" id="mainContent" style="padding-bottom:40px;">
+    <div class="page-container page-container--with-top-pad" id="mainContent">
+      ${renderBreadcrumb(['Arbeitspl\u00e4tze gestalten'])}
       <div class="page-hero">
         <h1 class="page-hero__title">Workspaces gestalten</h1>
         <p class="page-hero__subtitle">Planen Sie Ihre B\u00fcror\u00e4ume effizient und nach aktuellen Arbeitsplatzstandards des Bundes.</p>
       </div>
 
       <div class="tile-grid">
-        <div class="tile">
-          <div class="tile__icon">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M2 8h20M8 2v20"/></svg>
-          </div>
-          <h3 class="tile__title">Stilwelten</h3>
-          <p class="tile__desc">Vordefinierte B\u00fcro-Stile entdecken</p>
+        <div class="card card--centered card--interactive">
+          <h3 class="card__title">Stilwelten</h3>
+          <p class="card__desc">Entdecken Sie vordefinierte B\u00fcro-Stile und Einrichtungskonzepte. Von klassisch bis modern \u2013 finden Sie die passende Atmosph\u00e4re f\u00fcr Ihr Arbeitsumfeld.</p>
+          <div class="card__arrow"><span class="card__arrow-icon">&rarr;</span></div>
         </div>
-        <div class="tile">
-          <div class="tile__icon">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          </div>
-          <h3 class="tile__title">Planungsbeispiele</h3>
-          <p class="tile__desc">Referenzprojekte und Inspirationen</p>
+        <div class="card card--centered card--interactive">
+          <h3 class="card__title">Planungsbeispiele</h3>
+          <p class="card__desc">Lassen Sie sich von realisierten Referenzprojekten inspirieren. Sehen Sie, wie andere Bundesstellen ihre R\u00e4ume gestaltet haben.</p>
+          <div class="card__arrow"><span class="card__arrow-icon">&rarr;</span></div>
         </div>
-        <div class="tile">
-          <div class="tile__icon">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          </div>
-          <h3 class="tile__title">CAD-Daten</h3>
-          <p class="tile__desc">Downloads f\u00fcr Planer und Architekten</p>
+        <div class="card card--centered card--interactive">
+          <h3 class="card__title">CAD-Daten</h3>
+          <p class="card__desc">Laden Sie CAD-Dateien und technische Zeichnungen f\u00fcr die professionelle Raumplanung herunter. F\u00fcr Planer und Architekten.</p>
+          <div class="card__arrow"><span class="card__arrow-icon">&rarr;</span></div>
         </div>
       </div>
 
-      <h2 class="section-heading">Stilwelten <span class="section-heading__line"></span></h2>
-      <div class="stilwelt-grid">
+      <h2 class="section-heading">Stilwelten</h2>
+      <div class="tile-grid">
         ${stilwelten.map(s => `
-          <div class="stilwelt-card">
-            <div class="stilwelt-card__image" style="background:${s.color}">
-              <span>${s.icon}</span>
+          <div class="card card--interactive">
+            <div class="card__image card__image--visual">
+              <img src="https://images.unsplash.com/${s.image}?w=600&h=300&fit=crop&auto=format&q=80" alt="${s.title}" loading="lazy">
             </div>
-            <div class="stilwelt-card__body">
-              <div class="stilwelt-card__title">${s.title}</div>
-              <div class="stilwelt-card__desc">${s.desc}</div>
+            <div class="card__body">
+              <div class="card__title">${s.title}</div>
+              <div class="card__desc">${s.desc}</div>
+            </div>
+            <div class="card__arrow">
+              <span class="card__arrow-icon">&rarr;</span>
             </div>
           </div>
         `).join('')}
       </div>
 
-      <h2 class="section-heading">Grundriss-App <span class="section-heading__line"></span></h2>
+    </div>
+  `;
+}
+
+// ---- GRUNDRISS-APP ----
+function renderGrundriss() {
+  return `
+    <div class="page-container page-container--with-top-pad" id="mainContent">
+      ${renderBreadcrumb(['Arbeitspl\u00e4tze verwalten'])}
+
       <div class="placeholder-area">
         <div class="placeholder-area__icon">
           <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="14" y2="9"/><line x1="9" y1="3" x2="9" y2="14"/><line x1="14" y1="9" x2="14" y2="21"/><line x1="9" y1="14" x2="21" y2="14"/></svg>
         </div>
-        <div class="placeholder-area__title">Grundriss-App (in Entwicklung)</div>
+        <div class="placeholder-area__title">Arbeitspl\u00e4tze verwalten (in Entwicklung)</div>
         <p class="placeholder-area__text">Hier k\u00f6nnen Sie direkt im Browser Grundrisse erstellen und mit Ihren<br>Kunden R\u00e4ume gestalten. Diese Funktion wird in einer zuk\u00fcnftigen Version verf\u00fcgbar sein.</p>
       </div>
     </div>
   `;
 }
 
-// ---- CIRCULAR HUB ----
+// ---- CIRCULAR (Gebrauchte Möbel) ----
 function renderCircular() {
-  const circularProducts = filterCircularProducts();
+  const products = filterCircularProducts();
+  const catLabel = getCategoryLabel(state.activeCategory);
+  const parent = getParentCategory(state.activeCategory);
+
+  const bcItems = [['Gebrauchte M\u00f6bel', "navigateTo('circular')"]];
+  if (state.activeCategory !== 'alle') {
+    if (parent) {
+      bcItems.push([parent.label, `setCategory('${parent.id}')`]);
+    }
+    bcItems.push([catLabel]);
+  }
 
   return `
-    <div class="page-container" id="mainContent" style="padding-bottom:40px;">
-      <div class="page-hero page-hero--green">
-        <h1 class="page-hero__title">Kreislaufwirtschaft im Bundesgeb\u00e4ude</h1>
-        <p class="page-hero__subtitle">Gebrauchte M\u00f6bel wiederverwenden statt entsorgen. Nachhaltig und kosteneffizient f\u00fcr die Bundesverwaltung.</p>
-      </div>
+    <div class="page-container page-container--with-top-pad page-container--no-bottom">
+      ${renderBreadcrumb(...bcItems)}
 
-      <div class="tile-grid">
-        <div class="tile tile--green">
-          <div class="tile__icon">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-          </div>
-          <h3 class="tile__title">Aktuell im Lager</h3>
-          <p class="tile__desc">Verf\u00fcgbare gebrauchte M\u00f6bel</p>
-          <div class="tile__count">${circularProducts.length} Objekte</div>
+      <div class="tile-grid tile-grid--3col">
+        <div class="card card--centered card--interactive" onclick="navigateTo('scan')" role="button" tabindex="0">
+          <h3 class="card__title">Objekt scannen</h3>
+          <p class="card__desc">Scannen Sie den QR-Code oder geben Sie die Inventar-Nummer eines M\u00f6belst\u00fccks ein, um dessen Status und Verf\u00fcgbarkeit zu pr\u00fcfen.</p>
+          <div class="card__arrow"><span class="card__arrow-icon">&rarr;</span></div>
         </div>
-        <div class="tile tile--green">
-          <div class="tile__icon">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h3v3H7zM14 7h3v3h-3zM7 14h3v3H7z"/></svg>
-          </div>
-          <h3 class="tile__title">Objekt Scannen</h3>
-          <p class="tile__desc">QR-Code oder ID eines Objekts scannen</p>
+        <div class="card card--centered card--interactive" onclick="navigateTo('erfassen')" role="button" tabindex="0">
+          <h3 class="card__title">Neues Objekt erfassen</h3>
+          <p class="card__desc">Tragen Sie gebrauchte M\u00f6bel ins System ein und machen Sie diese f\u00fcr andere Bundesstellen verf\u00fcgbar. So f\u00f6rdern wir die Wiederverwendung.</p>
+          <div class="card__arrow"><span class="card__arrow-icon">&rarr;</span></div>
         </div>
-        <div class="tile tile--green">
-          <div class="tile__icon">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </div>
-          <h3 class="tile__title">Neues Objekt erfassen</h3>
-          <p class="tile__desc">M\u00f6bel ins System eintragen</p>
+        <div class="card card--centered card--interactive" onclick="navigateTo('charta')" role="button" tabindex="0">
+          <h3 class="card__title">Charta kreislauforientiertes Bauen</h3>
+          <p class="card__desc">Erfahren Sie mehr \u00fcber unsere Strategie f\u00fcr Kreislaufwirtschaft und nachhaltiges Bauen in der Bundesverwaltung.</p>
+          <div class="card__arrow"><span class="card__arrow-icon">&rarr;</span></div>
         </div>
       </div>
 
-      <h2 class="section-heading">Objekt Scannen <span class="section-heading__line"></span></h2>
+      <h2 class="section-heading">Gebrauchte M\u00f6bel</h2>
+    </div>
+    <div class="app-layout">
+      <aside class="sidebar" role="navigation" aria-label="Kategorien">
+        <div class="sidebar__title">Kategorien</div>
+        <div class="cat-tree" role="tree">
+          ${renderCategoryTree(CATEGORIES)}
+        </div>
+      </aside>
+      <main class="main-content" id="mainContent">
+        <div class="toolbar">
+          <div class="search-bar">
+            <input class="search-bar__input" type="search" placeholder="Gebrauchte M\u00f6bel suchen..." id="searchInput" value="${escapeHtml(state.searchQuery)}" aria-label="Gebrauchte M\u00f6bel suchen">
+            <button class="search-bar__btn" aria-label="Suchen">${ICONS.search}</button>
+          </div>
+          <select class="sort-select" id="sortSelect" aria-label="Sortierung">
+            <option value="name-asc" ${state.sortBy==='name-asc'?'selected':''}>Name A-Z</option>
+            <option value="name-desc" ${state.sortBy==='name-desc'?'selected':''}>Name Z-A</option>
+            <option value="price-asc" ${state.sortBy==='price-asc'?'selected':''}>Preis aufsteigend</option>
+            <option value="price-desc" ${state.sortBy==='price-desc'?'selected':''}>Preis absteigend</option>
+          </select>
+          <span class="toolbar__count">${products.length} Objekt${products.length !== 1 ? 'e' : ''}</span>
+        </div>
+        ${products.length ? `
+          <div class="product-grid" id="productGrid">
+            ${products.map(p => renderProductCard(p)).join('')}
+          </div>
+        ` : `
+          <div class="no-results">
+            <div class="no-results__icon">${ICONS.placeholder}</div>
+            <p class="no-results__text">Keine gebrauchten M\u00f6bel gefunden.</p>
+          </div>
+        `}
+      </main>
+    </div>
+  `;
+}
+
+// ---- OBJEKT SCANNEN ----
+function renderScan() {
+  return `
+    <div class="page-container page-container--with-top-pad" id="mainContent">
+      ${renderBreadcrumb(['Gebrauchte M\u00f6bel', "navigateTo('circular')"], ['Objekt scannen'])}
+      <div class="page-hero">
+        <h1 class="page-hero__title">Objekt scannen</h1>
+        <p class="page-hero__subtitle">Scannen Sie den QR-Code auf dem M\u00f6belst\u00fcck oder geben Sie die Inventar-Nummer manuell ein.</p>
+      </div>
+
       <div class="scan-area">
         <div class="scan-area__visual">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h3v3H7zM14 7h3v3h-3zM7 14h3v3H7z"/><rect x="14" y="14" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.3"/></svg>
@@ -571,14 +697,25 @@ function renderCircular() {
           <p class="scan-area__text">Scannen Sie den QR-Code auf dem M\u00f6belst\u00fcck oder geben Sie die Inventar-Nummer manuell ein, um den Status und die Historie des Objekts einzusehen.</p>
           <div class="scan-area__input-row">
             <input class="scan-area__input" type="text" placeholder="z.B. INV-2024-001234">
-            <button class="btn btn--green">Suchen</button>
+            <button class="btn btn--primary">Suchen</button>
           </div>
         </div>
       </div>
+    </div>
+  `;
+}
 
-      <h2 class="section-heading">Neues Objekt erfassen <span class="section-heading__line"></span></h2>
+// ---- NEUES OBJEKT ERFASSEN ----
+function renderErfassen() {
+  return `
+    <div class="page-container page-container--with-top-pad" id="mainContent">
+      ${renderBreadcrumb(['Gebrauchte M\u00f6bel', "navigateTo('circular')"], ['Neues Objekt erfassen'])}
+      <div class="page-hero">
+        <h1 class="page-hero__title">Neues Objekt erfassen</h1>
+        <p class="page-hero__subtitle">M\u00f6belst\u00fcck dem Kreislauf hinzuf\u00fcgen.</p>
+      </div>
+
       <div class="form-card">
-        <div class="form-card__title">M\u00f6belst\u00fcck dem Kreislauf hinzuf\u00fcgen</div>
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label">Bezeichnung</label>
@@ -618,15 +755,27 @@ function renderCircular() {
             <textarea class="form-textarea" placeholder="Zus\u00e4tzliche Informationen zum Objekt..."></textarea>
           </div>
           <div class="form-actions">
-            <button class="btn btn--green">Objekt erfassen</button>
+            <button class="btn btn--primary">Objekt erfassen</button>
             <button class="btn btn--outline">Abbrechen</button>
           </div>
         </div>
       </div>
+    </div>
+  `;
+}
 
-      <h2 class="section-heading">Verf\u00fcgbare gebrauchte M\u00f6bel <span class="section-heading__line"></span></h2>
-      <div class="product-grid">
-        ${circularProducts.map(p => renderProductCard(p)).join('')}
+// ---- CHARTA KREISLAUFORIENTIERTES BAUEN ----
+function renderCharta() {
+  return `
+    <div class="page-container page-container--with-top-pad" id="mainContent">
+      ${renderBreadcrumb(['Gebrauchte M\u00f6bel', "navigateTo('circular')"], ['Charta kreislauforientiertes Bauen'])}
+
+      <div class="placeholder-area">
+        <div class="placeholder-area__icon">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg>
+        </div>
+        <div class="placeholder-area__title">Charta kreislauforientiertes Bauen (in Entwicklung)</div>
+        <p class="placeholder-area__text">Unsere Strategie f\u00fcr Kreislaufwirtschaft und nachhaltiges Bauen.<br>Diese Seite wird in einer zuk\u00fcnftigen Version verf\u00fcgbar sein.</p>
       </div>
     </div>
   `;
@@ -732,7 +881,6 @@ function navigateTo(page, subPage) {
   state.mobileMenuOpen = false;
   document.getElementById('appNav').classList.remove('app-nav--mobile-open');
   document.getElementById('hamburgerBtn').setAttribute('aria-expanded', 'false');
-  closeAllDropdowns();
   render();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -746,40 +894,6 @@ function navigateTo(page, subPage) {
 }
 
 // ===================================================================
-// DROPDOWNS
-// ===================================================================
-document.querySelectorAll('[data-dropdown]').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const ddId = btn.dataset.dropdown;
-    const dd = document.getElementById(ddId);
-
-    if (dd.classList.contains('mega-dropdown--open')) {
-      closeAllDropdowns();
-    } else {
-      closeAllDropdowns();
-      dd.classList.add('mega-dropdown--open');
-      btn.classList.add('app-nav__btn--open');
-      btn.setAttribute('aria-expanded', 'true');
-    }
-  });
-});
-
-function closeAllDropdowns() {
-  document.querySelectorAll('.mega-dropdown').forEach(dd => dd.classList.remove('mega-dropdown--open'));
-  document.querySelectorAll('[data-dropdown]').forEach(btn => {
-    btn.classList.remove('app-nav__btn--open');
-    btn.setAttribute('aria-expanded', 'false');
-  });
-}
-
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.mega-dropdown') && !e.target.closest('[data-dropdown]')) {
-    closeAllDropdowns();
-  }
-});
-
-// ===================================================================
 // HAMBURGER MENU
 // ===================================================================
 document.getElementById('hamburgerBtn').addEventListener('click', () => {
@@ -788,12 +902,6 @@ document.getElementById('hamburgerBtn').addEventListener('click', () => {
   state.mobileMenuOpen = !state.mobileMenuOpen;
   nav.classList.toggle('app-nav--mobile-open', state.mobileMenuOpen);
   btn.setAttribute('aria-expanded', String(state.mobileMenuOpen));
-});
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    closeAllDropdowns();
-  }
 });
 
 // ===================================================================
@@ -808,7 +916,7 @@ function handleHash() {
     state.page = 'product';
     state.productId = Number(sub);
     state.subPage = null;
-  } else if (['home', 'shop', 'planung', 'circular'].includes(page)) {
+  } else if (['home', 'shop', 'planung', 'grundriss', 'circular', 'scan', 'erfassen', 'charta'].includes(page)) {
     state.page = page;
     state.subPage = sub;
     state.productId = null;
@@ -822,13 +930,9 @@ function handleHash() {
 window.addEventListener('hashchange', handleHash);
 window.addEventListener('popstate', handleHash);
 
-// Tile keyboard support (delegated)
+// Card keyboard support (delegated)
 document.addEventListener('keydown', (e) => {
-  if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('tile')) {
-    e.preventDefault();
-    e.target.click();
-  }
-  if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('product-card')) {
+  if ((e.key === 'Enter' || e.key === ' ') && (e.target.classList.contains('card--interactive') || e.target.classList.contains('card--product'))) {
     e.preventDefault();
     e.target.click();
   }

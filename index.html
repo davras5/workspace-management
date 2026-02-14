@@ -22,15 +22,21 @@
       Alle Schweizer Bundesbeh&ouml;rden
       <svg viewBox="0 0 12 12" aria-hidden="true"><polyline points="2,4 6,8 10,4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
-    <button class="federal-bar__lang" aria-label="Sprache" aria-expanded="false">
-      DE
-      <svg viewBox="0 0 12 12" aria-hidden="true"><polyline points="2,4 6,8 10,4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
+    <div class="federal-bar__actions">
+      <button class="federal-bar__action" aria-label="Anmelden">
+        Anmelden
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </button>
+      <button class="federal-bar__lang" aria-label="Sprache" aria-expanded="false">
+        DE
+        <svg viewBox="0 0 12 12" aria-hidden="true"><polyline points="2,4 6,8 10,4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
   </div>
 
   <!-- Row 2: Brand bar (logo + department) -->
   <div class="brand-bar">
-    <div class="brand-bar__left" style="cursor:pointer" onclick="navigateTo('home')">
+    <div class="brand-bar__left" onclick="navigateTo('home')">
       <svg class="brand-bar__coat-of-arms" viewBox="0 0 40 44" role="img" aria-label="Schweizer Wappen">
         <path d="m38.5778 3.2s-7.2-3.2-19.3-3.2c-12.00002 0-19.2000222 3.2-19.2000222 3.2s-.6999998 14.1 2.1000022 22.1c4.8 14 17.20002 18 17.20002 18s12.3-3.9 17.2-18c2.6-8 2-22.1 2-22.1z" fill="#ff0000"/>
         <path d="m32.0779 15.4v7.8h-9v9.1h-7.7v-9.1h-8.99997v-7.8h8.99997v-9.09995h7.7v9.09995z" fill="#ffffff"/>
@@ -45,9 +51,13 @@
       <div class="brand-bar__dept">Bundesamt f&uuml;r Bauten und Logistik BBL</div>
     </div>
     <div class="brand-bar__right">
-      <button class="brand-bar__search" aria-label="Suche">
-        Suche
+      <button class="brand-bar__action" aria-label="Suche">
+        <span>Suche</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+      </button>
+      <button class="brand-bar__action" aria-label="Warenkorb">
+        <span>Warenkorb</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
       </button>
     </div>
   </div>
@@ -59,48 +69,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
     <div class="app-nav" id="appNav">
-      <div class="app-nav__item">
-        <button class="app-nav__btn" data-nav="shop" data-dropdown="dd-shop" aria-expanded="false" aria-haspopup="true">
-          Produktkatalog
-          <svg viewBox="0 0 12 12"><polyline points="2,4 6,8 10,4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <div class="mega-dropdown" id="dd-shop" role="menu">
-          <div class="mega-dropdown__section">
-            <a class="mega-dropdown__link" href="#" onclick="navigateTo('shop');return false">nach Produktgruppen</a>
-            <a class="mega-dropdown__link" href="#" onclick="navigateTo('shop','new');return false">nach Neuheiten</a>
-            <a class="mega-dropdown__link" href="#" onclick="navigateTo('shop','brands');return false">nach Marken</a>
-            <a class="mega-dropdown__link" href="#" onclick="navigateTo('shop','dealers');return false">nach Fachh&auml;ndler</a>
-            <a class="mega-dropdown__link" href="#" onclick="navigateTo('shop','designers');return false">nach Designer</a>
-          </div>
-        </div>
-      </div>
-      <div class="app-nav__item">
-        <button class="app-nav__btn" data-nav="planung" data-dropdown="dd-planung" aria-expanded="false" aria-haspopup="true">
-          B&uuml;roplanung
-          <svg viewBox="0 0 12 12"><polyline points="2,4 6,8 10,4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <div class="mega-dropdown" id="dd-planung" role="menu">
-          <div class="mega-dropdown__section">
-            <a class="mega-dropdown__link" href="#" onclick="navigateTo('planung','stilwelten');return false">Stilwelten</a>
-            <a class="mega-dropdown__link" href="#" onclick="navigateTo('planung','beispiele');return false">Planungsbeispiele</a>
-            <a class="mega-dropdown__link" href="#" onclick="navigateTo('planung','cad');return false">CAD-Daten</a>
-          </div>
-        </div>
-      </div>
-      <div class="app-nav__item">
-        <button class="app-nav__btn" data-nav="circular" data-dropdown="dd-circular" aria-expanded="false" aria-haspopup="true">
-          Circular-Hub
-          <svg viewBox="0 0 12 12"><polyline points="2,4 6,8 10,4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <div class="mega-dropdown" id="dd-circular" role="menu">
-          <div class="mega-dropdown__section">
-            <a class="mega-dropdown__link" href="#" onclick="navigateTo('circular','info');return false">Kreislaufwirtschaft</a>
-            <a class="mega-dropdown__link" href="#" onclick="navigateTo('circular','lager');return false">Aktuell im Lager</a>
-            <a class="mega-dropdown__link" href="#" onclick="navigateTo('circular','scan');return false">Objekt Scannen</a>
-            <a class="mega-dropdown__link" href="#" onclick="navigateTo('circular','erfassen');return false">Neues Objekt erfassen</a>
-          </div>
-        </div>
-      </div>
+      <a class="app-nav__link" data-nav="shop" href="#/shop">Produktkatalog</a>
+      <a class="app-nav__link" data-nav="circular" href="#/circular">Gebrauchte M&ouml;bel</a>
+      <a class="app-nav__link" data-nav="planung" href="#/planung">Arbeitspl&auml;tze gestalten</a>
+      <a class="app-nav__link" data-nav="grundriss" href="#/grundriss">Arbeitspl&auml;tze verwalten</a>
     </div>
   </nav>
 </header>
@@ -109,12 +81,48 @@
 <div id="app"></div>
 
 <footer class="app-footer">
-  <div>&copy; 2026 Bundesamt f&uuml;r Bauten und Logistik BBL &mdash; Schweizerische Eidgenossenschaft</div>
-  <div class="app-footer__links">
-    <a href="#">Impressum</a>
-    <a href="#">Rechtliches</a>
-    <a href="#">Barrierefreiheit</a>
-    <a href="#">Kontakt</a>
+  <div class="footer-info">
+    <div class="footer-info__inner">
+      <div class="footer-info__col">
+        <h3 class="footer-info__heading">&Uuml;ber uns</h3>
+        <p class="footer-info__text">Das Bundesamt f&uuml;r Bauten und Logistik BBL ist das Kompetenzzentrum des Bundes f&uuml;r Immobilien, Beschaffung und Mobilit&auml;t. Es plant, baut und bewirtschaftet die zivilen Bundesbauten und beschafft G&uuml;ter und Dienstleistungen.</p>
+      </div>
+      <div class="footer-info__col">
+        <h3 class="footer-info__heading">Bleiben Sie informiert</h3>
+        <div class="footer-info__social">
+          <a href="#" class="footer-info__social-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+            Facebook
+          </a>
+          <a href="#" class="footer-info__social-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+            Instagram
+          </a>
+          <a href="#" class="footer-info__social-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            LinkedIn
+          </a>
+        </div>
+        <a href="#" class="footer-info__newsletter">Newsletter &rarr;</a>
+      </div>
+      <div class="footer-info__col">
+        <h3 class="footer-info__heading">Weitere Informationen</h3>
+        <ul class="footer-info__list">
+          <li><a href="#">Kontakt <span>&rarr;</span></a></li>
+          <li><a href="#">Stellenangebote <span>&rarr;</span></a></li>
+          <li><a href="#">Medieninformationen <span>&rarr;</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="app-footer__bottom">
+    <div>&copy; 2026 Bundesamt f&uuml;r Bauten und Logistik BBL &mdash; Schweizerische Eidgenossenschaft</div>
+    <div class="app-footer__links">
+      <a href="#">Impressum</a>
+      <a href="#">Rechtliches</a>
+      <a href="#">Barrierefreiheit</a>
+      <a href="#">Kontakt</a>
+    </div>
   </div>
 </footer>
 

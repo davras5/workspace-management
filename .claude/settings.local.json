@@ -16,7 +16,9 @@
       "Bash(certutil -decode:*)",
       "Bash(where:*)",
       "WebFetch(domain:oblique.directus.app)",
-      "WebFetch(domain:www.npmjs.com)"
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(curl:*)",
+      "WebFetch(domain:api.github.com)"
     ]
   }
 }

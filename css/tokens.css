@@ -40,6 +40,7 @@
   --color-text-secondary:      #4a5568;
   --color-text-muted:          #718096;
   --color-text-inverse:        #FFFFFF;
+  --color-text-on-dark:        rgba(255, 255, 255, 0.7);  /* Text on dark surfaces */
 
   /* ── SURFACES & BACKGROUNDS ───────────────────────────────────────────── */
   --color-bg-default:          #FFFFFF;
@@ -71,6 +72,8 @@
   /* ── CIRCULAR-HUB (project-specific) ──────────────────────────────────── */
   --color-circular:            #3E8A27;
   --color-circular-light:      #E8F5E3;
+  --color-circular-dark:       #2d6e1b;          /* Hover / pressed green */
+  --color-circular-bg:         #d4edcc;          /* Hero gradient end */
 
   /* ── TYPOGRAPHY ───────────────────────────────────────────────────────── */
   --font-family:               "Noto Sans", "Helvetica Neue", Arial, sans-serif;
@@ -87,6 +90,7 @@
   --text-body-sm:              0.875rem;          /* 14px */
   --text-body-xs:              0.6875rem;         /* 11px */
   --text-caption:              0.75rem;           /* 12px */
+  --text-compact:              0.8125rem;         /* 13px – buttons, dropdown labels */
   --text-label:                0.875rem;          /* 14px */
 
   /* Line heights */
@@ -101,6 +105,11 @@
   --font-weight-medium:        500;
   --font-weight-semibold:      600;
   --font-weight-bold:          700;
+
+  /* Letter spacing */
+  --letter-spacing-tight:      0.3px;
+  --letter-spacing-normal:     0.5px;
+  --letter-spacing-wide:       1.2px;
 
   /* ── SPACING (4px base unit) ──────────────────────────────────────────── */
   --space-xs:                  4px;
