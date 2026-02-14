@@ -19,11 +19,14 @@
 | **Workspace**      | Workspace within a room                       | Arbeitsplatz                 | Counter only (`workspaces`)  | —                      |
 | **ProductCategory**| Hierarchical product category                 | Produktkategorie             | `data/categories.json`       | IfcClassificationRef   |
 | **Product**        | Catalog item (orderable)                      | Katalogartikel               | `data/products.json`         | IfcFurnitureType       |
-| **FurnitureItem**  | Inventory object (physical furniture piece)   | Inventarobjekt / Möbelstück  | `data/furniture-items.json`  | IfcFurniture           |
-| **CircularListing**| Circular economy listing (reuse)              | Kreislauf-Angebot            | Derived from FurnitureItem   | —                      |
+| **InventoryItem**  | Tracked physical object (any type)            | Inventarobjekt               | `data/inventory.json`        | IfcFurniture           |
+| **CircularListing**| Circular economy listing (reuse)              | Kreislauf-Angebot            | `data/inventory-circular.json`| —                     |
 | **Organization**   | Federal agency / organizational unit          | Bundesstelle                 | Free text in checkout        | —                      |
 | **Order**          | Order from the catalog                        | Bestellung                   | `state.cart` + checkout      | —                      |
 | **OrderItem**      | Single order line item                        | Bestellposition              | `state.cart[]`               | —                      |
+| **PlanningExample**| Showcase project for workspace planning       | Planungsbeispiel             | `data/planning-examples.json`| —                      |
+| **StyleWorld**     | Workspace style / atmosphere concept          | Stilwelt                     | `data/style-worlds.json`     | —                      |
+| **CadFile**        | CAD download section with file listings       | CAD-Dateibereich             | `data/cad-files.json`        | —                      |
 
 ### Domain Model
 
@@ -42,9 +45,9 @@ graph LR
   end
 
   subgraph Inventory & Circular Economy
-    Product -.->|Type → Instance| FurnitureItem
-    FurnitureItem -->|placed in| Room
-    FurnitureItem -->|0..1| CircularListing
+    Product -.->|Type → Instance| InventoryItem
+    InventoryItem -->|placed in| Room
+    InventoryItem -->|0..1| CircularListing
   end
 
   subgraph Business Processes
@@ -275,7 +278,7 @@ from CAFM systems and the BuildingMinds workspace management feature.
 | `isAssigned`     | boolean    |          | Permanently assigned?                             | Fest zugewiesen        | CAFM                   |
 | `assignedTo`     | string     |          | Personnel number / name of assigned person         | Zugewiesene Person     | CAFM                   |
 | `organizationId` | string     |          | FK → Organization                                  | Organisation-FK        | CAFM                   |
-| `equipment`      | string[]   |          | List of assigned FurnitureItem IDs                 | Ausstattung            | —                      |
+| `equipment`      | string[]   |          | List of assigned InventoryItem IDs                 | Ausstattung            | —                      |
 | `position`       | {x, y}    |          | Position in floor plan (pixels or meters)          | Position               | Archilogic Asset       |
 | `rotation`       | number     |          | Rotation in degrees                                | Rotation               | Archilogic Asset       |
 
@@ -363,10 +366,11 @@ The fields `dimensions`, `weight`, `material`, `color`, `articleNumber`,
 
 ## 3. Inventory & Circular Economy
 
-### 3.1 FurnitureItem (Inventarobjekt)
+### 3.1 InventoryItem (Inventarobjekt)
 
-A physical instance of a product — a specific furniture piece located at a
-particular place that is inventoried. Corresponds to the IFC concept
+A physical instance of a product — a specific tracked object located at a
+particular place that is inventoried. Covers furniture, IT equipment, fixtures,
+appliances, and any other physical item. Corresponds to the IFC concept
 `IfcFurniture` or Archilogic `Asset`.
 
 | Attribute        | Type       | Required | Description                                      | DE Term                | Reference              |
@@ -378,6 +382,8 @@ particular place that is inventoried. Corresponds to the IFC concept
 | `serialNumber`   | string     |          | Manufacturer serial number                         | Seriennummer           | —                      |
 | `brand`          | string     |          | Brand (redundant if productId is set)              | Marke                  | —                      |
 | `categoryId`     | string     |          | FK → ProductCategory                               | Kategorie-FK           | —                      |
+| `buildingId`     | string     |          | FK → Building (current building)                   | Gebäude-FK             | —                      |
+| `floorId`        | string     |          | FK → Floor (current floor)                         | Geschoss-FK            | —                      |
 | `roomId`         | string     |          | FK → Room (current location)                       | Raum-FK                | IFC `ContainedInSpatialStructure` |
 | `workspaceId`    | string     |          | FK → Workspace (if assigned)                       | Arbeitsplatz-FK        | —                      |
 | `status`         | enum       | ✓        | Current status                                     | Status                 | CAFM                   |
@@ -390,7 +396,7 @@ particular place that is inventoried. Corresponds to the IFC concept
 | `qrCode`         | string     |          | QR code content (URL or inventory number)           | QR-Code                | Prototype "Scan"       |
 | `notes`          | string     |          | Notes                                               | Bemerkungen            | —                      |
 
-**Enum `FurnitureStatus`:**
+**Enum `InventoryStatus`:**
 
 | Value (EN)         | Value (DE)           |
 |--------------------|----------------------|
@@ -401,7 +407,7 @@ particular place that is inventoried. Corresponds to the IFC concept
 | In transfer        | Im Transfer          |
 | Disposed           | Entsorgt             |
 
-**Enum `FurnitureCondition`:**
+**Enum `InventoryCondition`:**
 
 | Value (EN)         | Value (DE)           |
 |--------------------|----------------------|
@@ -411,21 +417,21 @@ particular place that is inventoried. Corresponds to the IFC concept
 | Needs repair       | Reparaturbedürftig   |
 | Defective          | Defekt               |
 
-**Prototype mapping:** In the prototype, FurnitureItems exist implicitly via
-the "Record object" and "Scan object" functions in the circular section.
-The inventory number (`INV-2024-001234`) is the primary identifier.
+**Prototype mapping:** Direct 1:1 correspondence to `data/inventory.json`.
+Used in the "Ausstattung" tab per building/floor. Items are linked to their
+spatial location via `buildingId`, `floorId`, and `roomId`.
 
 ---
 
 ### 3.2 CircularListing (Kreislauf-Angebot)
 
-When a furniture item is released for reuse, a circular listing is created —
+When an inventory item is released for reuse, a circular listing is created —
 comparable to a posting in an internal marketplace.
 
 | Attribute        | Type       | Required | Description                                      | DE Term                |
 |------------------|------------|----------|--------------------------------------------------|------------------------|
 | `listingId`      | string     | ✓        | Unique ID                                         | Angebots-ID            |
-| `itemId`         | string     | ✓        | FK → FurnitureItem                                 | Inventar-FK            |
+| `itemId`         | string     | ✓        | FK → InventoryItem                                 | Inventar-FK            |
 | `offeredBy`      | string     | ✓        | FK → Organization (offering agency)                | Anbietende Stelle      |
 | `price`          | number     |          | Transfer price CHF (0 = free transfer)             | Abgabepreis            |
 | `condition`      | enum       | ✓        | Condition at time of listing                       | Zustand                |
@@ -445,9 +451,9 @@ comparable to a posting in an internal marketplace.
 | Expired            | Abgelaufen           |
 | Withdrawn          | Zurückgezogen        |
 
-**Prototype mapping:** In the prototype, used furniture items are filtered via
-the `isCircular` flag in `products.json`. In the target architecture, a
-CircularListing would be a separate entity referencing a specific FurnitureItem.
+**Prototype mapping:** Direct 1:1 correspondence to `data/inventory-circular.json`.
+In the target architecture, a CircularListing would be a separate entity
+referencing a specific InventoryItem.
 
 ---
 
@@ -567,21 +573,21 @@ erDiagram
     Building ||--o{ Floor : "contains"
     Floor ||--o{ Room : "contains"
     Room ||--o{ Workspace : "contains"
-    Room ||--o{ FurnitureItem : "hosts"
-    Workspace ||--o{ FurnitureItem : "assigned"
+    Room ||--o{ InventoryItem : "hosts"
+    Workspace ||--o{ InventoryItem : "assigned"
 
     ProductCategory ||--o{ ProductCategory : "hierarchy"
     ProductCategory ||--o{ Product : "categorizes"
 
-    Product ||--o{ FurnitureItem : "Type → Instance"
+    Product ||--o{ InventoryItem : "Type → Instance"
     Product ||--o{ OrderItem : "ordered"
 
-    FurnitureItem ||--o| CircularListing : "reuse"
+    InventoryItem ||--o| CircularListing : "reuse"
 
     Organization ||--o{ Order : "places"
     Organization ||--o{ Room : "uses"
     Organization ||--o{ Workspace : "assigned"
-    Organization ||--o{ FurnitureItem : "responsible"
+    Organization ||--o{ InventoryItem : "responsible"
 
     Order ||--o{ OrderItem : "contains"
 ```
@@ -601,7 +607,7 @@ the key mapping decisions:
 | Floor                | IfcBuildingStorey            | No elevations / Z-values             |
 | Room                 | IfcSpace                    | No CompositionType (COMPLEX/PARTIAL)  |
 | Workspace            | — (no IFC equivalent)       | CAFM extension                        |
-| FurnitureItem        | IfcFurniture                | No geometry (Brep/SweptSolid)         |
+| InventoryItem        | IfcFurniture                | No geometry (Brep/SweptSolid)         |
 | Product              | IfcFurnitureType            | Simplified type definition             |
 | ProductCategory      | IfcClassificationReference  | Flat hierarchy instead of IfcClassification |
 
@@ -618,15 +624,81 @@ the key mapping decisions:
 | Workspace        | Counter only (`workspaces`)            | CAFM system / Booking tool    |
 | Product          | `data/products.json`                   | SAP MM / Catalog API           |
 | ProductCategory  | `data/categories.json`                 | SAP MM / Catalog API           |
-| FurnitureItem    | Implicit (scan/record functions)       | SAP PM / CAFM system           |
-| CircularListing  | `isCircular` flag on Product           | Circular marketplace service   |
+| InventoryItem    | `data/inventory.json`                  | SAP PM / CAFM system           |
+| CircularListing  | `data/inventory-circular.json`         | Circular marketplace service   |
 | Organization     | Free text in checkout form             | LDAP / Admin Directory         |
 | Order            | `state.cart` + checkout                | SAP MM / Order portal          |
 | OrderItem        | `state.cart[]` entries                 | SAP MM / Order portal          |
+| PlanningExample  | `data/planning-examples.json`          | CMS / Content API              |
+| StyleWorld       | `data/style-worlds.json`               | CMS / Content API              |
+| CadFile          | `data/cad-files.json`                  | DMS / Content API              |
 
 ---
 
-## 9. Extension Potential
+## 9. Content & Inspiration
+
+### 9.1 PlanningExample (Planungsbeispiel)
+
+A showcase project illustrating a completed or reference workspace planning
+implementation. Used on the platform to provide inspiration and demonstrate
+best practices for different workspace scenarios.
+
+| Attribute        | Type       | Required | Description                                      | DE Term                |
+|------------------|------------|----------|--------------------------------------------------|------------------------|
+| `title`          | string     | ✓        | Project title (e.g. `"Administration Building Bern"`) | Titel            |
+| `description`    | string     | ✓        | Short description of the project scope and approach | Beschreibung        |
+| `photo`          | string     | ✓        | Image URL / Unsplash photo ID                     | Bild-URL               |
+
+**Prototype mapping:** Direct 1:1 correspondence to `data/planning-examples.json`.
+Each entry represents a reference project card shown in the inspiration section.
+
+---
+
+### 9.2 StyleWorld (Stilwelt)
+
+A workspace style or atmosphere concept describing a particular furnishing
+philosophy. Each style world defines a coherent design language for a type
+of workspace environment.
+
+| Attribute        | Type       | Required | Description                                      | DE Term                |
+|------------------|------------|----------|--------------------------------------------------|------------------------|
+| `title`          | string     | ✓        | Style name (e.g. `"Focus Workspace"`)             | Titel                  |
+| `description`    | string     | ✓        | Detailed description of the style concept and furnishing elements | Beschreibung |
+| `photo`          | string     | ✓        | Image URL / Unsplash photo ID                     | Bild-URL               |
+
+**Prototype mapping:** Direct 1:1 correspondence to `data/style-worlds.json`.
+Each entry represents a style world card in the inspiration / planning section.
+
+---
+
+### 9.3 CadFile (CAD-Dateibereich)
+
+A downloadable CAD section grouping related architectural drawings, floor plans,
+and 3D models. Each section contains multiple files in various formats (DWG, PDF,
+IFC, SKP) that planners can download for workspace design.
+
+| Attribute        | Type       | Required | Description                                      | DE Term                |
+|------------------|------------|----------|--------------------------------------------------|------------------------|
+| `id`             | string     | ✓        | Unique section ID (e.g. `"open-space"`)           | Bereichs-ID            |
+| `title`          | string     | ✓        | Section title (e.g. `"Open Space"`)               | Titel                  |
+| `files`          | CadFileEntry[] | ✓    | Array of downloadable files                       | Dateien                |
+
+**Embedded `CadFileEntry`:**
+
+| Attribute        | Type       | Required | Description                                      | DE Term                |
+|------------------|------------|----------|--------------------------------------------------|------------------------|
+| `name`           | string     | ✓        | File display name                                 | Dateiname              |
+| `format`         | string     | ✓        | File format (e.g. `"DWG"`, `"PDF"`, `"IFC"`, `"SKP"`) | Format           |
+| `size`           | string     | ✓        | Human-readable file size (e.g. `"245.30 kB"`)     | Dateigrösse            |
+| `date`           | string     | ✓        | Publication / last updated date                   | Datum                  |
+
+**Prototype mapping:** Direct 1:1 correspondence to `data/cad-files.json`.
+Each entry represents an accordion section in the CAD downloads area, with
+nested file entries shown as download rows.
+
+---
+
+## 10. Extension Potential
 
 The following entities are not modeled in the current prototype but would be
 relevant for production use:

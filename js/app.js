@@ -20,10 +20,10 @@ async function loadData() {
     fetch('data/sites.json'),
     fetch('data/buildings.json'),
     fetch('data/floors.json'),
-    fetch('data/furniture-items.json'),
-    fetch('data/stilwelten.json'),
-    fetch('data/planungsbeispiele.json'),
-    fetch('data/cad-sections.json')
+    fetch('data/inventory-circular.json'),
+    fetch('data/style-worlds.json'),
+    fetch('data/planning-examples.json'),
+    fetch('data/cad-files.json')
   ]);
   CATEGORIES = await catRes.json();
   PRODUCTS = await prodRes.json();

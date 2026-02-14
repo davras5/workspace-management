@@ -49,14 +49,14 @@ js/
   app.js            Application logic, routing, rendering
 data/
   products.json     Furniture catalog
-  buildings.json    Building metadata + floor hierarchy
-  buildings.geojson Building coordinates for map
-  furniture-items.json  Circular economy items
+  buildings.json    Building metadata (coords used for map)
+  inventory.json    Inventory items per building/floor (Ausstattung)
+  inventory-circular.json  Circular economy listings (reuse)
   sites.json        Site/canton groupings
   floors.json       Floor details with room lists
-  stilwelten.json   Style world inspirations
-  planungsbeispiele.json  Planning examples
-  cad-sections.json CAD download sections
+  style-worlds.json   Style world inspirations
+  planning-examples.json  Planning examples
+  cad-files.json CAD download sections
   categories.json   Product category tree
 docs/
   REQUIREMENTS.md   Functional requirements (German)
