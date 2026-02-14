@@ -31,13 +31,13 @@
     { "id": "schreibtischlampen", "label": "Schreibtischlampen", "children": [] },
     { "id": "stehlampen", "label": "Stehlampen", "children": [] }
   ]},
-  { "id": "clubsessel-sofa", "label": "Clubsessel/Sofa", "children": [] },
-  { "id": "sichtschutz", "label": "Sichtschutz/Akustik/Trennw\u00e4nde", "children": [] },
+  { "id": "clubsessel-sofa", "label": "Clubsessel / Sofa", "children": [] },
+  { "id": "sichtschutz", "label": "Sichtschutz / Akustik / Trennw\u00e4nde", "children": [] },
   { "id": "usm", "label": "USM", "children": [
     { "id": "usm-haller", "label": "USM Haller", "children": [] },
     { "id": "usm-kitos", "label": "USM Kitos", "children": [] }
   ]},
-  { "id": "zeitungssammler", "label": "Zeitungssammler/St\u00e4nder", "children": [] },
+  { "id": "zeitungssammler", "label": "Zeitungssammler / St\u00e4nder", "children": [] },
   { "id": "tresor", "label": "Tresor", "children": [] },
   { "id": "garderobe", "label": "Garderobe", "children": [
     { "id": "kleiderstaender", "label": "Kleiderst\u00e4nder", "children": [] },

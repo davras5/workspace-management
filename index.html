@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BBL Workspace Management</title>
+<title>BBL Arbeitsplatz-Management</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/style.css">
@@ -17,7 +17,7 @@
 <div class="notification-banner" id="cookieBanner" role="alert">
   <div class="notification-banner__wrapper">
     <p class="notification-banner__text">
-      Diese Website verwendet Cookies, um Ihnen den bestm&ouml;glichen Service zu bieten.
+      Diese Anwendung verwendet technisch notwendige Cookies f&uuml;r den Betrieb der Plattform.
       <a href="#">Weitere Informationen</a>
     </p>
     <div class="notification-banner__actions">
@@ -71,14 +71,9 @@
         <path d="m38.5778 3.2s-7.2-3.2-19.3-3.2c-12.00002 0-19.2000222 3.2-19.2000222 3.2s-.6999998 14.1 2.1000022 22.1c4.8 14 17.20002 18 17.20002 18s12.3-3.9 17.2-18c2.6-8 2-22.1 2-22.1z" fill="#ff0000"/>
         <path d="m32.0779 15.4v7.8h-9v9.1h-7.7v-9.1h-8.99997v-7.8h8.99997v-9.09995h7.7v9.09995z" fill="#ffffff"/>
       </svg>
-      <div class="top-header__text">
-        Schweizerische Eidgenossenschaft<br>
-        Conf&eacute;d&eacute;ration suisse<br>
-        Confederazione Svizzera<br>
-        Confederaziun svizra
-      </div>
+      <img class="top-header__text" src="assets/swiss-logo-name.svg" alt="Schweizerische Eidgenossenschaft – Conf&eacute;d&eacute;ration suisse – Confederazione Svizzera – Confederaziun svizra">
       <div class="top-header__divider"></div>
-      <div class="top-header__dept">Bundesamt f&uuml;r Bauten und Logistik BBL</div>
+      <div class="top-header__dept">Bundesamt f&uuml;r Bauten und Logistik BBL<br><span class="top-header__dept-sub">Immobilienlogistik</span></div>
     </div>
     <div class="top-header__right">
       <div class="top-header__meta-nav">
@@ -86,14 +81,21 @@
         <a href="#" class="top-header__meta-link">Kontakt</a>
         <a href="#" class="top-header__meta-link">Medien</a>
       </div>
-      <button class="top-header__action" aria-label="Suche">
-        <span>Suche</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
-      </button>
-      <button class="top-header__action" aria-label="Warenkorb">
-        <span>Warenkorb</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-      </button>
+      <div class="top-header__actions">
+        <div class="header-search" id="headerSearch">
+          <form class="header-search__form" id="headerSearchForm" role="search" aria-label="Seitensuche">
+            <input class="header-search__input" id="headerSearchInput" type="search" placeholder="Suchbegriff eingeben" aria-label="Suchbegriff eingeben" autocomplete="off">
+            <button class="header-search__btn" type="button" aria-label="Suche">
+              <span class="header-search__label">Suche</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+            </button>
+          </form>
+        </div>
+        <button class="top-header__action" aria-label="Warenkorb" onclick="navigateTo('cart')">
+          <span>Warenkorb</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -107,7 +109,7 @@
       <a class="main-navigation__link" data-nav="shop" href="#/shop">Produktkatalog</a>
       <a class="main-navigation__link" data-nav="circular" href="#/circular">Gebrauchte M&ouml;bel</a>
       <a class="main-navigation__link" data-nav="planung" href="#/planung">Arbeitspl&auml;tze gestalten</a>
-      <a class="main-navigation__link" data-nav="grundriss" href="#/grundriss">Arbeitspl&auml;tze verwalten</a>
+      <a class="main-navigation__link" data-nav="grundriss" href="#/grundriss">Raumplanung</a>
     </div>
   </nav>
 </header>
@@ -120,7 +122,7 @@
     <div class="footer-information__inner">
       <div class="footer-information__col">
         <h3 class="footer-information__heading">&Uuml;ber uns</h3>
-        <p class="footer-information__text">Das Bundesamt f&uuml;r Bauten und Logistik BBL ist das Kompetenzzentrum des Bundes f&uuml;r Immobilien, Beschaffung und Mobilit&auml;t. Es plant, baut und bewirtschaftet die zivilen Bundesbauten und beschafft G&uuml;ter und Dienstleistungen.</p>
+        <p class="footer-information__text">Das Bundesamt f&uuml;r Bauten und Logistik BBL stellt die Arbeitsplatzinfrastruktur der Bundesverwaltung bereit. &Uuml;ber diese Plattform k&ouml;nnen Mobiliar bestellt, R&auml;ume geplant und gebrauchte M&ouml;bel f&uuml;r die Wiederverwendung erfasst werden.</p>
       </div>
       <div class="footer-information__col">
         <h3 class="footer-information__heading">Bleiben Sie informiert</h3>

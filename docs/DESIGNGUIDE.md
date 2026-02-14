@@ -68,21 +68,48 @@ Referenz-Implementation: `kbob-fdk` (lokale Kopie)
 ### 3.1 Token-System
 
 Alle visuellen Werte sind in **`css/tokens.css`** als CSS Custom Properties definiert.
-`style.css` importiert `tokens.css` und referenziert die Tokens ueber `--ob-*` Aliases.
+`style.css` importiert `tokens.css` und referenziert die Tokens direkt ueber `var(--color-*)`,
+`var(--text-*)`, `var(--space-*)` etc.
 
 Token-Werte sind an das offizielle Swiss Design System (Tailwind Config) angeglichen:
 - Graupalette: Tailwind-Graus mit Blauunterton
+- Sekundaerpalette: Offizielles Blue-Gray (secondary-50 bis secondary-900)
 - Schatten: Offizielle Dual-Layer-Definitionen
 - Radien: Offizielle Skala (Default 3px)
 - Fokus: Offizielles Purple (#8655F6)
+- Typografie: Mobile-first mit responsiven Skalierungen an offiziellen Breakpoints
+- Layout: Responsive Container-Padding, Grid-Gutter, Section-Padding
 
-### 3.2 Token-Namenskonvention
+### 3.2 Responsive Token-Architektur
+
+Tokens skalieren automatisch an offiziellen Breakpoints via `@media`-Overrides in `tokens.css`.
+Dies ersetzt das PostCSS/Tailwind-Build-System der Referenz-Implementation durch natives CSS.
+
+```
+:root {
+  --text-h1: 1.625rem;           /* Mobile-first base */
+}
+@media (min-width: 1024px) {
+  :root { --text-h1: 2rem; }     /* lg scale */
+}
+@media (min-width: 1280px) {
+  :root { --text-h1: 2.5rem; }   /* xl scale */
+}
+@media (min-width: 1920px) {
+  :root { --text-h1: 3rem; }     /* 3xl scale */
+}
+```
+
+### 3.3 Token-Namenskonvention
 
 ```
 --color-primary-dark      Semantischer Farbtoken
+--color-secondary-600     Offizielle Sekundaerpalette
 --text-body-sm            Typografie-Token
 --space-xl                Abstands-Token
 --font-weight-bold        Schriftschnitt-Token
+--section-py              Responsiver Layout-Token
+--btn-min-h               Komponenten-Token
 ```
 
 ---
@@ -91,15 +118,15 @@ Token-Werte sind an das offizielle Swiss Design System (Tailwind Config) angegli
 
 ### 4.1 Farbpalette
 
-#### Markenfarben (Brand)
+#### Markenfarben (Brand — Swiss Red)
 
-| Token                     | Wert      | Verwendung                             |
-|---------------------------|-----------|----------------------------------------|
-| `--color-accent`          | `#D8232A` | Swiss Red – aktive Nav-Linie, Badges   |
-| `--color-accent-light`    | `#E53940` | primary-500                            |
-| `--color-accent-dark`     | `#BF1F25` | primary-700                            |
+| Token                     | Wert      | Offizielle Palette | Verwendung                  |
+|---------------------------|-----------|--------------------|-----------------------------|
+| `--color-accent`          | `#D8232A` | primary-600        | Swiss Red, aktive Nav-Linie |
+| `--color-accent-light`    | `#E53940` | primary-500        | Hover-State                 |
+| `--color-accent-dark`     | `#BF1F25` | primary-700        | Pressed-State               |
 
-#### Primaerfarben (Interactive)
+#### Primaerfarben (Interactive — projekt-spezifisch)
 
 | Token                     | Wert      | Verwendung                         |
 |---------------------------|-----------|-------------------------------------|
@@ -107,6 +134,10 @@ Token-Werte sind an das offizielle Swiss Design System (Tailwind Config) angegli
 | `--color-primary-hover`   | `#005580` | Button Hover                       |
 | `--color-primary-light`   | `#E6F0F7` | Badge-Hintergruende, Ghost-Button  |
 | `--color-primary-dark`    | `#004B6E` | Pressed-State                      |
+
+> **Abweichung:** Das offizielle Design System nutzt Swiss Red fuer interaktive Elemente
+> (Outline-Buttons, Links). Dieses Projekt verwendet Blau (#006699) fuer interaktive Elemente,
+> um die Unterscheidung zwischen Brand-Akzent (Rot) und interaktiven Elementen zu erhalten.
 
 #### Neutralfarben (Tailwind-aligned)
 
@@ -122,6 +153,21 @@ Token-Werte sind an das offizielle Swiss Design System (Tailwind Config) angegli
 | `--color-gray-700`        | `#374151` | Betonte Beschreibungen             |
 | `--color-gray-800`        | `#1F2937` | Primaertext, Ueberschriften       |
 | `--color-gray-900`        | `#111827` | Staerkster Kontrast                |
+
+#### Sekundaerpalette (Offizielles Blue-Gray)
+
+| Token                     | Wert      | Offizielle Palette | Verwendung                  |
+|---------------------------|-----------|--------------------|-----------------------------|
+| `--color-secondary-50`    | `#F0F4F7` | secondary-50       | Subtilster BG               |
+| `--color-secondary-100`   | `#DFE4E9` | secondary-100      | Footer-Hover                |
+| `--color-secondary-200`   | `#ACB4BD` | secondary-200      | Borders                     |
+| `--color-secondary-300`   | `#828E9A` | secondary-300      | Footer-Trennlinien          |
+| `--color-secondary-400`   | `#596978` | secondary-400      | Muted auf Dunkel            |
+| `--color-secondary-500`   | `#46596B` | secondary-500      | Sekundaer-Buttons           |
+| `--color-secondary-600`   | `#2F4356` | secondary-600      | Federal Bar, Footer-Info    |
+| `--color-secondary-700`   | `#263645` | secondary-700      | Footer-Unterzeile           |
+| `--color-secondary-800`   | `#1C2834` | secondary-800      | Dunkelster BG               |
+| `--color-secondary-900`   | `#131B22` | secondary-900      | Maximal dunkel              |
 
 #### Semantische Textfarben
 
@@ -140,8 +186,8 @@ Token-Werte sind an das offizielle Swiss Design System (Tailwind Config) angegli
 | `--color-bg-default`      | `#FFFFFF` | Standard-Hintergrund               |
 | `--color-bg-alt`          | `#F3F4F6` | Alternativhintergrund (= gray-100) |
 | `--color-bg-surface`      | `#F9FAFB` | Subtiler Hintergrund (= gray-50)   |
-| `--color-surface-dark`    | `#3e5060` | Federal Bar, Footer-Info           |
-| `--color-surface-darker`  | `#2d3a44` | Footer-Unterzeile                  |
+| `--color-surface-dark`    | `#2F4356` | Federal Bar, Footer-Info (= secondary-600) |
+| `--color-surface-darker`  | `#263645` | Footer-Unterzeile (= secondary-700)|
 
 #### Statusfarben (aligned mit offiziellen Paletten)
 
@@ -172,22 +218,28 @@ Token-Werte sind an das offizielle Swiss Design System (Tailwind Config) angegli
 font-family: "Noto Sans", "Helvetica Neue", Arial, sans-serif;
 ```
 
-#### Typografie-Skala
+> **Abweichung:** Das offizielle Design System nutzt die lizenzierte Schrift Frutiger.
+> Dieses Projekt verwendet Noto Sans als frei verfuegbare Alternative.
+> Font-Weight 700 (bold) wird anstelle einer separaten Frutiger-Bold-Datei verwendet.
 
-| Token           | Groesse   | Pixel | Offizielles Aequivalent | Verwendung              |
-|-----------------|-----------|-------|-------------------------|-------------------------|
-| `--text-display`| 2.75rem   | 44px  | (projekt-spezifisch)    | Hero-Titel              |
-| `--text-h1`     | 2.25rem   | 36px  | (projekt-spezifisch)    | Seitentitel             |
-| `--text-h2`     | 1.75rem   | 28px  | (projekt-spezifisch)    | Sektionsueberschriften  |
-| `--text-h3`     | 1.375rem  | 22px  | 2xl                     | Kartenueberschriften    |
-| `--text-h4`     | 1.125rem  | 18px  | lg                      | Unterueberschriften     |
-| `--text-h5`     | 1rem      | 16px  | base                    | Kleine Ueberschriften   |
-| `--text-body`   | 1rem      | 16px  | base                    | Fliesstext              |
-| `--text-body-sm`| 0.875rem  | 14px  | sm                      | Kompakter Text, Labels  |
-| `--text-body-xs`| 0.75rem   | 12px  | xs                      | Federal Bar, Wappen     |
-| `--text-caption`| 0.75rem   | 12px  | xs                      | Bildunterschriften      |
-| `--text-compact`| 0.8125rem | 13px  | (projekt-spezifisch)    | Buttons, Dropdowns      |
-| `--text-label`  | 0.875rem  | 14px  | sm                      | Formular-Labels         |
+#### Responsive Typografie-Skala
+
+Alle Typografie-Tokens skalieren responsiv an offiziellen Breakpoints.
+Basiswerte (Mobile-first) entsprechen den offiziellen `text--*` Klassen.
+
+| Token           | Base (Mobile) | lg (1024px) | xl (1280px) | 3xl (1920px) | Offiziell     |
+|-----------------|---------------|-------------|-------------|--------------|---------------|
+| `--text-display`| 2rem (32px)   | 2.5rem      | 3rem        | 3.5rem       | text--4xl     |
+| `--text-h1`     | 1.625rem (26px)| 2rem       | 2.5rem      | 3rem         | text--3xl     |
+| `--text-h2`     | 1.375rem (22px)| 1.625rem   | 2rem        | 2.5rem       | text--2xl     |
+| `--text-h3`     | 1.25rem (20px) | 1.375rem   | 1.625rem    | 2rem         | text--xl      |
+| `--text-h4`     | 1.125rem (18px)| —          | 1.25rem     | 1.375rem     | text--lg      |
+| `--text-h5`     | 1rem (16px)    | —          | 1.125rem    | 1.25rem      | text--base    |
+| `--text-body`   | 1rem (16px)    | —          | 1.125rem    | 1.25rem      | text--base    |
+| `--text-body-sm`| 0.875rem (14px)| —          | 1rem        | 1.125rem     | text--sm      |
+| `--text-body-xs`| 0.75rem (12px) | —          | 0.875rem    | 1rem         | text--xs      |
+| `--text-caption`| 0.75rem (12px) | —          | 0.875rem    | 1rem         | text--xs      |
+| `--text-label`  | 0.875rem (14px)| —          | 1rem        | 1.125rem     | text--sm      |
 
 #### Schriftschnitte
 
@@ -195,18 +247,18 @@ font-family: "Noto Sans", "Helvetica Neue", Arial, sans-serif;
 |---------------------------|------|----------------------------------|
 | `--font-weight-normal`    | 400  | Fliesstext                       |
 | `--font-weight-medium`    | 500  | Produktnamen, Links              |
-| `--font-weight-semibold`  | 600  | Buttons, Labels, Ueberschriften  |
-| `--font-weight-bold`      | 700  | Preise, Hauptueberschriften      |
+| `--font-weight-semibold`  | 600  | Labels, Ueberschriften           |
+| `--font-weight-bold`      | 700  | Buttons, Hauptueberschriften     |
 
-#### Zeilenhoehen
+#### Zeilenhoehen (aligned mit Tailwind Defaults)
 
-| Token                     | Wert | Verwendung                       |
-|---------------------------|------|----------------------------------|
-| `--line-height-tight`     | 1.2  | Ueberschriften                   |
-| `--line-height-snug`      | 1.3  | Federal-Bar-Text                 |
-| `--line-height-normal`    | 1.5  | Fliesstext (Standard)            |
-| `--line-height-relaxed`   | 1.6  | Beschreibungen                   |
-| `--line-height-loose`     | 1.8  | Grosszuegiger Text               |
+| Token                     | Wert  | Tailwind   | Verwendung                  |
+|---------------------------|-------|------------|-----------------------------|
+| `--line-height-tight`     | 1.25  | leading-tight  | Ueberschriften          |
+| `--line-height-snug`      | 1.375 | leading-snug   | Kompakte Texte          |
+| `--line-height-normal`    | 1.5   | leading-normal | Fliesstext (Standard)   |
+| `--line-height-relaxed`   | 1.625 | leading-relaxed| Beschreibungen          |
+| `--line-height-loose`     | 2     | leading-loose  | Grosszuegiger Text      |
 
 ---
 
@@ -227,14 +279,50 @@ Basis: **4px** Einheit (= Tailwind 0.25rem Inkremente).
 
 ---
 
-### 4.4 Layout
+### 4.4 Layout (Responsive)
+
+Layout-Tokens skalieren automatisch an offiziellen Breakpoints.
+
+#### Container & Grid
+
+| Token                   | Base (Mobile) | xs (480px) | sm (640px) | lg (1024px) | xl (1280px) | 3xl (1920px) |
+|-------------------------|---------------|------------|------------|-------------|-------------|--------------|
+| `--container-padding`   | 1rem (16px)   | 1.75rem    | 2.25rem    | 2.5rem      | 3rem        | 4rem         |
+| `--grid-gutter`         | 1.25rem (20px)| 1.75rem    | 2.25rem    | 2.5rem      | 3rem        | 4rem         |
+| `--container-max-width` | 1544px        | —          | —          | —           | —           | 1676px       |
+
+Offizielle Aequivalente: `px-4` → `xs:px-7` → `sm:px-9` → `lg:px-10` → `xl:px-12` → `3xl:px-16`
+
+#### Section Vertical Padding
+
+| Token               | Base (Mobile) | lg (1024px) | 3xl (1920px) |
+|----------------------|---------------|-------------|--------------|
+| `--section-py`       | 3.5rem (56px) | 5rem (80px) | 8rem (128px) |
+| `--section-py-half`  | 1.75rem (28px)| 2.5rem (40px)| 4rem (64px) |
+
+#### Top-Header Vertical Padding
+
+| Token               | Base (Mobile) | md (768px) | lg (1024px) | xl (1280px) | 3xl (1920px) |
+|----------------------|---------------|------------|-------------|-------------|--------------|
+| `--top-header-py`    | 0.75rem (12px)| 1rem (16px)| 1.5rem (24px)| 2rem (32px)| 2.5rem (40px)|
+
+Offizielles Aequivalent: `py-3` → `md:py-4` → `lg:py-6` → `xl:py-8` → `3xl:py-10`
+
+#### Button Min-Heights
+
+| Token               | Base (Mobile) | xl (1280px) | 3xl (1920px) |
+|----------------------|---------------|-------------|--------------|
+| `--btn-min-h`        | 44px          | 48px        | 52px         |
+| `--btn-sm-min-h`     | 34px          | 40px        | 44px         |
+| `--btn-lg-min-h`     | 48px          | 52px        | 56px         |
+
+#### Feste Layout-Werte
 
 | Token                     | Wert    | Verwendung                       |
 |---------------------------|---------|----------------------------------|
-| `--container-max-width`   | 1544px  | Offizieller 2xl Breakpoint       |
-| `--container-padding`     | 32px    | Horizontales Padding             |
-| `--grid-gutter`           | 24px    | Grid-Abstand                     |
 | `--sidebar-width`         | 260px   | Kategorie-Sidebar                |
+| `--topbar-height`         | 46px    | Federal Bar                      |
+| `--nav-height`            | 64px    | Navigationsleiste                |
 
 ---
 
@@ -243,8 +331,8 @@ Basis: **4px** Einheit (= Tailwind 0.25rem Inkremente).
 | Token          | Wert  | Offiziell | Verwendung                       |
 |----------------|-------|-----------|----------------------------------|
 | `--radius-xs`  | 1px   | xs        | Minimaler Radius                 |
-| `--radius-sm`  | 2px   | sm        | Badges, Tags                     |
-| `--radius`     | 3px   | DEFAULT   | Standard (Buttons, Karten, Inputs)|
+| `--radius-sm`  | 2px   | sm        | Buttons (offiziell rounded-sm)   |
+| `--radius`     | 3px   | DEFAULT   | Standard (Karten, Inputs)        |
 | `--radius-lg`  | 5px   | lg        | Groessere Elemente               |
 | `--radius-xl`  | 6px   | xl        | Panels                           |
 | `--radius-2xl` | 8px   | 2xl       | Modals, grosse Karten            |
@@ -272,7 +360,7 @@ Der Header folgt dem 3-zeiligen admin.ch-Muster:
 
 ```
 +--------------------------------------------------------------+
-| FEDERAL BAR (#3e5060, 46px)                                   |
+| FEDERAL BAR (--color-surface-dark #2F4356, 46px)              |
 | "Alle Schweizer Bundesbehoerden"   [LS] [GS] [Anmelden] [DE]|
 +--------------------------------------------------------------+
 | BRAND BAR (weiss)                                             |
@@ -286,7 +374,7 @@ Der Header folgt dem 3-zeiligen admin.ch-Muster:
 
 ### 5.1 Federal Bar
 
-- Hintergrund: `--color-surface-dark` (#3e5060)
+- Hintergrund: `--color-surface-dark` (#2F4356 = secondary-600)
 - Hoehe: `--topbar-height` (46px)
 - Links: "Alle Schweizer Bundesbehoerden" mit Chevron
 - Rechts: Leichte Sprache (Icon+Label), Gebaerdensprache (Icon+Label),
@@ -296,6 +384,7 @@ Der Header folgt dem 3-zeiligen admin.ch-Muster:
 ### 5.2 Brand Bar
 
 - Hintergrund: weiss
+- Responsive vertikales Padding: `--top-header-py` (12px → 40px)
 - Links: Wappen (34px) + Viersprachiger Text + Divider + Departementsname
 - Rechts: Meta-Navigation (Jobs, Kontakt, Medien) + Suche + Warenkorb
 - Meta-Navigation: Getrennt durch vertikale Linie, hidden auf Mobile
@@ -327,7 +416,7 @@ Der Header folgt dem 3-zeiligen admin.ch-Muster:
 
 ### 6.3 Section-Wrapper
 
-- `.section` — padding mit `--_center-pad` fuer fluid centering
+- `.section` — padding mit `--section-py` (responsive 56px → 128px)
 - `.section--bg-alt` — Alternating Background (`--color-bg-alt`)
 - Hintergrund-Alternation: weiss → grau → weiss
 
@@ -337,18 +426,28 @@ Der Header folgt dem 3-zeiligen admin.ch-Muster:
 
 ### 7.1 Karten (Cards)
 
+#### Padding & Sizing (aligned mit offiziellem card.postcss)
+
+| Bereich       | Wert                | Offizielles Aequivalent |
+|---------------|---------------------|-------------------------|
+| Card Body     | 2.5rem 1.5rem       | py-10 px-6              |
+| Card Body (Mobile) | 1.5rem 1rem    | py-6 px-4               |
+| Card Footer   | 0 1.5rem 1.5rem     | px-6 pb-6               |
+| Card Title    | `--text-h4` (18px+) | text-lg xl:text-xl      |
+| Card Title Weight | bold (700)      | font-bold               |
+
 #### Centered Card (Tile)
 
 - Ohne Icons, nur Text (Titel + Beschreibung + Pfeil)
 - Pfeil: 36px Box, `--color-accent` Border
-- **Hover**: Pfeil fuellt sich rot, verschiebt 2px rechts. Titel bleibt unveraendert.
+- **Hover**: Pfeil fuellt sich rot, verschiebt 2px rechts. Shadow → `--shadow-2xl`.
 - Klasse: `.card--centered .card--interactive`
 
 #### Produkt-Karte
 
 - Bild (responsive srcset 400w/600w/800w), Titel, Beschreibung, Preis, Marke
 - Badges: "Neu" (accent), "Gebraucht" (circular)
-- Hover: Shadow-Erhoehung
+- Hover: Shadow-Erhoehung auf `--shadow-2xl`
 
 #### Card-Varianten
 
@@ -358,7 +457,21 @@ Der Header folgt dem 3-zeiligen admin.ch-Muster:
 | Highlight (rot)      | `.card--highlight`      | 5px roter Top-Border              |
 | Highlight (blau)     | `.card--highlight-primary` | 5px blauer Top-Border          |
 
-### 7.2 Buttons
+### 7.2 Buttons (aligned mit offiziellem btn.postcss)
+
+#### Sizing & Spacing
+
+| Variante | Min-Height        | Font-Size        | Padding   | Radius        |
+|----------|-------------------|------------------|-----------|---------------|
+| Default  | `--btn-min-h`     | `--text-body`    | 0 1rem    | `--radius-sm` |
+| Small    | `--btn-sm-min-h`  | `--text-body-sm` | 0 0.75rem | `--radius-sm` |
+| Large    | `--btn-lg-min-h`  | `--text-h4`      | 0 1.5rem  | `--radius-sm` |
+
+Alle Buttons: border-radius `--radius-sm` (2px = offiziell rounded-sm),
+font-weight 700 (bold), transition 150ms, line-height tight (1.25).
+
+> **Abweichung:** Offizielle Buttons nutzen `rounded-sm` (2px), nicht `rounded` (3px).
+> Buttons nutzen `--radius-sm`, andere Komponenten (Karten, Inputs) nutzen `--radius` (3px).
 
 | Variante      | Klasse           | Stil                                    |
 |---------------|------------------|-----------------------------------------|
@@ -371,15 +484,15 @@ Der Header folgt dem 3-zeiligen admin.ch-Muster:
 | Small         | `.btn--sm`       | Kompaktes Padding                       |
 | Large         | `.btn--lg`       | Groesseres Padding + Font               |
 
-Alle Buttons: border-radius `--radius` (3px), font-weight 600, transition 150ms.
-
 ### 7.3 Hero Section
 
 - Layout: Flexbox, Text links + Bild rechts (50/50)
-- Titel: `--text-display` (44px), `--color-text-primary`
-- Beschreibung: `--text-body`, `--color-text-secondary`
+- Titel: `--text-display` (responsive 32px → 56px), `--color-text-primary`
+- Beschreibung: `--text-h4`, `--line-height-snug`
 - CTAs: Primary-Button + Outline-Button mit Arrow-Icon
-- Mobile: Stacked (Text oben, Bild unten)
+- Gap: `--grid-gutter` (responsive)
+- Padding: `3rem --container-padding --section-py`
+- Mobile: Stacked (Text oben, Bild unten), Padding `--section-py-half --container-padding`
 - Bild: Responsive `<picture>` mit srcset
 
 ### 7.4 Breadcrumbs
@@ -388,8 +501,9 @@ Alle Buttons: border-radius `--radius` (3px), font-weight 600, transition 150ms.
 Home > Produktkatalog > Stuehle > Produktname
 ```
 
+- Padding: 0.5rem 0 (offiziell py-2 xl:py-3)
 - Separator: Chevron-Right SVG (14px)
-- Font-size: 14px
+- Font-size: `--text-body-sm` (14px)
 - Letzte Position: gray-800 (nicht verlinkt)
 - Links: gray-600, hover → primary
 
@@ -400,16 +514,22 @@ Home > Produktkatalog > Stuehle > Produktname
 - Einrueckung pro Ebene: +28px padding-left
 - Max 3 Ebenen
 
-### 7.6 Footer
+### 7.6 Footer (aligned mit offiziellem footer.postcss)
 
 Zwei-teiliger Footer:
 
-1. **Footer-Info** (`--color-surface-dark`) — 3-Spalten Grid:
+1. **Footer-Info** (`--color-surface-dark` = secondary-600) — 3-Spalten Grid:
+   - Padding: `--section-py`
+   - Inner Gap: 4rem
    - Ueber uns (Beschreibungstext)
-   - Bleiben Sie informiert (Social Links: Facebook, Instagram, LinkedIn, X, YouTube + Newsletter-Button)
+   - Bleiben Sie informiert (Social Links + Newsletter-Button)
    - Weitere Informationen (Link-Liste mit Pfeilen)
+   - Trennlinien: `--color-secondary-300`
+   - Hover-Hintergrund: `--color-secondary-100`
 
-2. **Footer-Bottom** (`--color-surface-darker`) — Copyright + Impressum/Rechtliches/Barrierefreiheit/Kontakt
+2. **Footer-Bottom** (`--color-surface-darker` = secondary-700) — Copyright + Impressum/Rechtliches/Barrierefreiheit/Kontakt
+   - Padding: 0.75rem
+   - Font-size: `--text-body-xs`
 
 ### 7.7 Back-to-Top Button
 
@@ -436,15 +556,26 @@ Zwei-teiliger Footer:
 
 ## 8. Responsive Breakpoints
 
-Breakpoints aligned mit offiziellen Werten:
+Breakpoints aligned mit offiziellen Werten aus `tailwind.config.js`:
 
-| Breakpoint | Offiziell | Anpassungen                                             |
-|------------|-----------|----------------------------------------------------------|
-| <= 768px   | md        | Hamburger-Menu, Sidebar hidden, Tile-Grid 1 Spalte      |
-|            |           | Hero stacked, Meta-Nav hidden, A11y-Labels hidden        |
-|            |           | Produktdetail Column, Federal-Bar kleinere Schrift       |
-|            |           | Cookie-Banner stacked                                    |
-| <= 480px   | xs        | Wappen 28px, Toolbar stacked                             |
+| Breakpoint | Pixel   | Offiziell | Token-Aenderungen                                           |
+|------------|---------|-----------|--------------------------------------------------------------|
+| Base       | 0       | —         | Mobile-first Basiswerte                                      |
+| xs         | 480px   | xs        | Container-Padding ↑, Grid-Gutter ↑                          |
+| sm         | 640px   | sm        | Container-Padding ↑, Grid-Gutter ↑                          |
+| md         | 768px   | md        | Top-Header-Padding ↑                                        |
+| lg         | 1024px  | lg        | Typografie skaliert (display–h3), Section-Padding ↑, Layout ↑|
+| xl         | 1280px  | xl        | Alle Typografie skaliert, Buttons ↑, Layout ↑               |
+| 3xl        | 1920px  | 3xl       | Finale Skalierung aller Tokens                               |
+
+### Responsive Verhalten
+
+| Breakpoint | Layout-Anpassungen                                               |
+|------------|------------------------------------------------------------------|
+| <= 768px   | Hamburger-Menu, Sidebar hidden, Tile-Grid 1 Spalte              |
+|            | Hero stacked, Meta-Nav hidden, A11y-Labels hidden               |
+|            | Card-Body Padding reduziert (1.5rem 1rem)                       |
+| <= 480px   | Wappen 28px, Toolbar stacked                                    |
 
 ---
 
@@ -457,10 +588,11 @@ Breakpoints aligned mit offiziellen Werten:
 
 ### 9.2 Hover-Effekte
 
-- **Karten**: Shadow-Erhoehung, Pfeil fuellt sich rot mit 2px Rechts-Shift
+- **Karten**: Shadow → `--shadow-2xl`, Pfeil fuellt sich rot mit 2px Rechts-Shift
 - **Links**: Farbe → Primary, text-decoration je nach Kontext
 - **Nav-Links**: Text → Accent
 - **Back-to-Top**: BG → Accent, Icon → weiss
+- **Footer-Links**: BG → `--color-secondary-100`
 
 ### 9.3 Focus-Stile
 
@@ -515,7 +647,7 @@ Breakpoints aligned mit offiziellen Werten:
 |----------------------------|-------------|--------|
 | gray-800 (#1F2937) auf weiss | ~13:1    | AAA    |
 | primary (#006699) auf weiss  | ~5.5:1   | AA     |
-| weiss auf surface-dark       | ~7:1     | AAA    |
+| weiss auf surface-dark (#2F4356) | ~8.5:1 | AAA   |
 | gray-500 (#6B7280) auf weiss | ~5.0:1   | AA     |
 | focus purple auf weiss       | ~4.6:1   | AA     |
 
@@ -537,8 +669,8 @@ BEM-artige Konvention:
 
 | Datei         | Inhalt                                                    |
 |---------------|-----------------------------------------------------------|
-| `tokens.css`  | Nur `:root`-Variablen, keine Selektoren                   |
-| `style.css`   | `--ob-*` Aliases + alle Komponentenstile                  |
+| `tokens.css`  | `:root`-Variablen + responsive `@media`-Overrides         |
+| `style.css`   | Alle Komponentenstile (direkte Token-Referenzen)          |
 | `index.html`  | Statische Shell (Header, Footer, Cookie Banner, Back-to-Top) |
 | `app.js`      | SPA-Logik (Routing, Rendering, Events, Interaktive Komponenten) |
 | `data/*.json` | Kategorien und Produkte                                    |
@@ -551,8 +683,96 @@ BEM-artige Konvention:
 | `#/shop`       | Produktkatalog               | shop         |
 | `#/product/:id`| Produktdetail                | shop         |
 | `#/planung`    | Arbeitsplaetze gestalten     | planung      |
-| `#/grundriss`  | Arbeitsplaetze verwalten     | grundriss    |
+| `#/grundriss`  | Raumplanung                  | grundriss    |
 | `#/circular`   | Gebrauchte Moebel            | circular     |
 | `#/scan`       | Objekt scannen               | circular     |
 | `#/erfassen`   | Neues Objekt erfassen        | circular     |
 | `#/charta`     | Charta kreislauforientiertes Bauen | circular |
+
+---
+
+## 12. Intentionale Abweichungen vom offiziellen Design System
+
+| Bereich              | Offizielles System          | Dieses Projekt             | Begruendung                           |
+|----------------------|-----------------------------|----------------------------|---------------------------------------|
+| Interaktive Farbe    | Swiss Red (#D8232A)         | Blau (#006699)             | Unterscheidung Brand vs. Interaktiv   |
+| Schriftart           | Frutiger (lizenziert)       | Noto Sans (Google Fonts)   | Lizenzkosten, freie Verfuegbarkeit    |
+| Bold-Gewicht         | Separate Font-Datei         | font-weight: 700           | Vereinfachung ohne Build-System       |
+| Build-System         | PostCSS + Tailwind          | Native CSS Custom Properties| Vanilla-Stack, kein Build-Schritt     |
+| Token-Responsive     | Tailwind @apply Klassen     | @media auf :root           | CSS-native Responsive-Tokens          |
+
+---
+
+## 13. Entfernte Legacy-Elemente
+
+Die folgenden Elemente wurden bei der Alignment-Refaktorierung entfernt:
+
+| Element               | Alter Wert    | Ersatz / Begruendung                     |
+|-----------------------|---------------|------------------------------------------|
+| `--ob-*` Alias-Block  | 20+ Aliases   | Direkte Token-Referenzen (`--color-*`)   |
+| `--text-compact`      | 0.8125rem     | `--text-body-sm` (0.875rem = offiziell)  |
+| `--footer-height`     | 200px         | Nicht benoetigt (auto-height)            |
+| `--brand-height`      | 80px          | Nicht benoetigt (auto-height)            |
+| `--color-focus-input`  | #006699      | Einheitlich `--color-focus` (#8655F6)    |
+| `--color-surface-dark` | #3e5060      | Korrigiert zu #2F4356 (secondary-600)    |
+| `--color-surface-darker`| #2d3a44     | Korrigiert zu #263645 (secondary-700)    |
+
+---
+
+## 14. Terminologie & Schreibkonventionen
+
+### 14.1 Sprachregister
+
+Die Anwendung richtet sich an **Mitarbeitende der Bundesverwaltung** (Facility Manager,
+Beschaffungsstellen, Bueroplanende). Der Tonfall ist:
+
+- **Institutionell**: Sachlich, klar, vertrauenswuerdig
+- **Aufgabenorientiert**: Beschreibungen sagen, was man tun kann — nicht, was man entdecken soll
+- **Nicht werblich**: Kein Marketing-Tonfall, keine Verkaufssprache
+
+### 14.2 Verbotene Formulierungen
+
+| Vermeiden             | Stattdessen verwenden           | Begruendung                              |
+|-----------------------|---------------------------------|------------------------------------------|
+| "Entdecken Sie..."    | Direkte Beschreibung            | Werblich, nicht aufgabenorientiert       |
+| "Lassen Sie sich inspirieren" | Sachliche Beschreibung  | Marketing-Sprache                        |
+| "stoebern"            | "suchen"                        | Zu umgangssprachlich                     |
+| "Finden Sie..."       | Direkte Aufzaehlung             | Werblich                                 |
+| "unser Sortiment"     | "Produkte" / "Mobiliar"         | Kein Ladengeschaeft                      |
+| "Ihre Workspaces"     | "Arbeitsplaetze"                | Anglizismus vermeiden                    |
+| "Kunden"              | "Bedarfsstellen" / "Nutzerorganisationen" | BBL hat keine Kunden im kommerziellen Sinn |
+
+### 14.3 Bevorzugte Terminologie
+
+| Bereich               | Bevorzugt                       | Vermeiden                        |
+|-----------------------|---------------------------------|----------------------------------|
+| Moebelbezeichnung     | "Mobiliar"                      | "Moebel" (informell)             |
+| Zielgruppe intern     | "Bundesstellen" / "Bedarfsstellen" | "Kunden"                      |
+| Bestellprozess        | "In den Warenkorb"              | "Bestellen" (impliziert Sofortkauf) |
+| Planung               | "Raumplanung"                   | "Arbeitsplaetze verwalten" (irreführend) |
+| Englisch              | Deutsche Entsprechung           | Anglizismus (Workspace, etc.)    |
+| Wiederverwendung      | "wiederverwenden"               | "weiternutzen" (unscharf)        |
+
+### 14.4 Verbindliche Navigationslabels
+
+| Ziel                  | Nav-Label                       | Breadcrumb                       | Seitentitel (h1)                 |
+|-----------------------|---------------------------------|----------------------------------|----------------------------------|
+| Produktkatalog        | Produktkatalog                  | Produktkatalog                   | (kein eigener h1)                |
+| Arbeitsplaetze        | Arbeitsplaetze gestalten        | Arbeitsplaetze gestalten         | Arbeitsplaetze gestalten         |
+| Raumplanung           | Raumplanung                     | Raumplanung                      | Raumplanung (in Entwicklung)     |
+| Gebrauchte Moebel     | Gebrauchte Moebel               | Gebrauchte Moebel                | Gebrauchte Moebel                |
+| Circular Sub-Seiten   | —                               | Gebrauchte Moebel > [Sub]        | [Sub-Titel]                      |
+| Planung Sub-Seiten    | —                               | Arbeitsplaetze gestalten > [Sub] | [Sub-Titel]                      |
+
+### 14.5 Schreibregeln
+
+1. **Keine Possessivpronomen fuer Bundeseigentum**: "Bueroraeme" statt "Ihre Bueroraeme" —
+   Raeme gehoeren der Organisation, nicht den Nutzenden.
+2. **Infinitivkonstruktionen bevorzugen**: "Mobiliar bestellen, Raeme planen" statt
+   "Bestellen Sie Mobiliar, planen Sie Raeme" — kuerzer, sachlicher.
+3. **Zustand nur bei Circular-Produkten anzeigen**: Katalogprodukte sind per Definition neu.
+   "Zustand: Neu" ist redundant und erzeugt eine falsche Parallele.
+4. **Cookie-Banner wahrheitsgemess**: Nur technisch notwendige Cookies erwaehnen,
+   wenn keine Marketing-/Tracking-Cookies vorhanden sind.
+5. **Footer beschreibt den Service**: Nicht generische BBL-Beschreibung, sondern
+   Bezug zur konkreten Plattform-Funktionalitaet.

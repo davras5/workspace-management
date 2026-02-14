@@ -1,27 +1,29 @@
 /* ==========================================================================
-   DESIGN TOKENS – CD Bund (Modern / Oblique)
+   DESIGN TOKENS – CD Bund
    BBL Workspace Management
 
    Aligned with the official Swiss Federal Design System (swiss/designsystem).
-   Gray scale, shadows, radii, focus from official Tailwind config.
+   All values resolved from official Tailwind config + PostCSS source files.
    Reference: github.com/swiss/designsystem
 
+   Responsive tokens scale at official breakpoints:
+   xs: 480px | sm: 640px | md: 768px | lg: 1024px | xl: 1280px | 2xl: 1544px | 3xl: 1920px
    ========================================================================== */
 
 :root {
 
-  /* ── BRAND ────────────────────────────────────────────────────────────── */
-  --color-accent:              #D8232A;          /* Official primary-600 (Swiss Red) */
+  /* ── BRAND (Official primary palette = Swiss Red) ──────────────────────── */
+  --color-accent:              #D8232A;          /* primary-600 */
   --color-accent-light:        #E53940;          /* primary-500 */
   --color-accent-dark:         #BF1F25;          /* primary-700 */
 
-  /* ── PRIMARY (interactive) ────────────────────────────────────────────── */
+  /* ── INTERACTIVE (project-specific blue) ─────────────────────────────── */
   --color-primary:             #006699;
   --color-primary-hover:       #005580;
   --color-primary-light:       #E6F0F7;
   --color-primary-dark:        #004B6E;
 
-  /* ── NEUTRALS (Tailwind-based, blue-tinted grays) ───────────────────── */
+  /* ── NEUTRALS (Official text palette) ──────────────────────────────────── */
   --color-black:               #000000;
   --color-white:               #FFFFFF;
 
@@ -36,10 +38,22 @@
   --color-gray-800:            #1F2937;
   --color-gray-900:            #111827;
 
+  /* ── SECONDARY (Official secondary palette, blue-gray) ─────────────────── */
+  --color-secondary-50:        #F0F4F7;
+  --color-secondary-100:       #DFE4E9;
+  --color-secondary-200:       #ACB4BD;
+  --color-secondary-300:       #828E9A;
+  --color-secondary-400:       #596978;
+  --color-secondary-500:       #46596B;
+  --color-secondary-600:       #2F4356;
+  --color-secondary-700:       #263645;
+  --color-secondary-800:       #1C2834;
+  --color-secondary-900:       #131B22;
+
   /* ── SEMANTIC TEXT ─────────────────────────────────────────────────────── */
-  --color-text-primary:        #1F2937;          /* gray-800 */
-  --color-text-secondary:      #6B7280;          /* gray-500 */
-  --color-text-muted:          #9CA3AF;          /* gray-400 */
+  --color-text-primary:        #1F2937;          /* text-800 */
+  --color-text-secondary:      #6B7280;          /* text-500 */
+  --color-text-muted:          #9CA3AF;          /* text-400 */
   --color-text-inverse:        #FFFFFF;
   --color-text-on-dark:        rgba(255, 255, 255, 0.7);
 
@@ -48,8 +62,8 @@
   --color-bg-alt:              #F3F4F6;          /* gray-100 */
   --color-bg-surface:          #F9FAFB;          /* gray-50 */
   --color-bg-highlight:        #FFFAB2;
-  --color-surface-dark:        #3e5060;          /* Federal bar, footer */
-  --color-surface-darker:      #2d3a44;          /* Footer bottom */
+  --color-surface-dark:        #2F4356;          /* secondary-600 (top bar, footer) */
+  --color-surface-darker:      #263645;          /* secondary-700 (footer bottom) */
 
   /* ── BORDERS ──────────────────────────────────────────────────────────── */
   --color-border:              #E5E7EB;          /* gray-200 */
@@ -58,48 +72,48 @@
 
   /* ── FOCUS ────────────────────────────────────────────────────────────── */
   --color-focus:               #8655F6;          /* Official purple-500 */
-  --color-focus-input:         #8655F6;          /* Official purple-500 */
 
   /* ── STATUS / SEMANTIC ────────────────────────────────────────────────── */
-  --color-success:             #047857;          /* Official green-700 */
+  --color-success:             #047857;          /* green-700 */
   --color-success-light:       #D1FAE5;          /* green-100 */
-  --color-warning:             #F59E0B;          /* Official yellow-500 */
+  --color-warning:             #F59E0B;          /* yellow-500 */
   --color-warning-light:       #FEF3C7;          /* yellow-100 */
-  --color-error:               #D8232A;          /* Official red-600 (= accent) */
+  --color-error:               #D8232A;          /* red-600 */
   --color-error-light:         #FEE2E2;          /* red-100 */
-  --color-info:                #0F6B75;          /* Official teal-700 */
+  --color-info:                #0F6B75;          /* teal-700 */
   --color-info-light:          #CCFBF1;          /* teal-100 */
 
   /* ── CIRCULAR-HUB (project-specific) ──────────────────────────────────── */
-  --color-circular:            #047857;          /* green-700 */
-  --color-circular-light:      #D1FAE5;          /* green-100 */
-  --color-circular-dark:       #065F46;          /* green-800 */
-  --color-circular-bg:         #ECFDF5;          /* green-50 */
+  --color-circular:            #047857;
+  --color-circular-light:      #D1FAE5;
+  --color-circular-dark:       #065F46;
+  --color-circular-bg:         #ECFDF5;
 
   /* ── TYPOGRAPHY ───────────────────────────────────────────────────────── */
   --font-family:               "Noto Sans", "Helvetica Neue", Arial, sans-serif;
   --font-family-mono:          "JetBrains Mono", "Fira Code", Consolas, monospace;
 
-  /* Type scale – aligned with official where possible */
-  --text-display:              2.75rem;           /* 44px */
-  --text-h1:                   2.25rem;           /* 36px */
-  --text-h2:                   1.75rem;           /* 28px */
-  --text-h3:                   1.375rem;          /* 22px = official 2xl */
-  --text-h4:                   1.125rem;          /* 18px = official lg */
-  --text-h5:                   1rem;              /* 16px = official base */
-  --text-body:                 1rem;              /* 16px = official base */
-  --text-body-sm:              0.875rem;          /* 14px = official sm */
-  --text-body-xs:              0.75rem;           /* 12px = official xs */
-  --text-caption:              0.75rem;           /* 12px = official xs */
-  --text-compact:              0.8125rem;         /* 13px – buttons, dropdown labels */
-  --text-label:                0.875rem;          /* 14px = official sm */
+  /* Responsive type scale – base (mobile-first) values.
+     Aligned with official text--base through text--4xl.
+     Scales at lg(1024), xl(1280), 3xl(1920) breakpoints. */
+  --text-display:              2rem;             /* text--4xl base */
+  --text-h1:                   1.625rem;         /* text--3xl base (26px) */
+  --text-h2:                   1.375rem;         /* text--2xl base (22px) */
+  --text-h3:                   1.25rem;          /* text--xl base (20px) */
+  --text-h4:                   1.125rem;         /* text--lg base (18px) */
+  --text-h5:                   1rem;             /* text--base */
+  --text-body:                 1rem;             /* text--base (16px) */
+  --text-body-sm:              0.875rem;         /* text--sm (14px) */
+  --text-body-xs:              0.75rem;          /* text--xs (12px) */
+  --text-caption:              0.75rem;          /* text--xs (12px) */
+  --text-label:                0.875rem;         /* text--sm (14px) */
 
-  /* Line heights */
-  --line-height-tight:         1.2;
-  --line-height-snug:          1.3;
+  /* Line heights (aligned with Tailwind defaults) */
+  --line-height-tight:         1.25;
+  --line-height-snug:          1.375;
   --line-height-normal:        1.5;
-  --line-height-relaxed:       1.6;
-  --line-height-loose:         1.8;
+  --line-height-relaxed:       1.625;
+  --line-height-loose:         2;
 
   /* Font weights */
   --font-weight-normal:        400;
@@ -112,7 +126,7 @@
   --letter-spacing-normal:     0.5px;
   --letter-spacing-wide:       1.2px;
 
-  /* ── SPACING (4px base unit, matches official 0.25rem increments) ────── */
+  /* ── SPACING (4px base unit) ──────────────────────────────────────────── */
   --space-xs:                  4px;
   --space-sm:                  8px;
   --space-md:                  16px;
@@ -122,35 +136,40 @@
   --space-3xl:                 64px;
   --space-4xl:                 80px;
 
-  /* ── LAYOUT ───────────────────────────────────────────────────────────── */
-  --container-max-width:       1544px;            /* Official 2xl breakpoint */
-  --container-padding:         var(--space-xl);   /* 32px */
-  --grid-gutter:               24px;
+  /* ── LAYOUT (responsive, base/mobile-first values) ──────────────────── */
+  --container-max-width:       1544px;           /* Official 2xl */
+  --container-padding:         1rem;             /* px-4 (16px) */
+  --grid-gutter:               1.25rem;          /* gap-5 (20px) */
   --sidebar-width:             260px;
+
+  /* Section vertical padding */
+  --section-py:                3.5rem;           /* py-14 (56px) */
+  --section-py-half:           1.75rem;          /* py-7 (28px) */
+
+  /* Top-header vertical padding */
+  --top-header-py:             0.75rem;          /* py-3 (12px) */
+
+  /* Button min-heights */
+  --btn-min-h:                 44px;
+  --btn-sm-min-h:              34px;
+  --btn-lg-min-h:              48px;
 
   /* Component heights */
   --topbar-height:             46px;
-  --brand-height:              auto;
   --nav-height:                64px;
-  --footer-height:             64px;
 
-  /* ── BREAKPOINTS (reference, matches official) ─────────────────────────── */
-  /* --breakpoint-xs:  480px;  */
-  /* --breakpoint-sm:  640px;  */
-  /* --breakpoint-md:  768px;  */
-  /* --breakpoint-lg:  1024px; */
-  /* --breakpoint-xl:  1280px; */
-  /* --breakpoint-2xl: 1544px; */
-  /* --breakpoint-3xl: 1920px; */
+  /* ── BREAKPOINTS (reference) ──────────────────────────────────────────── */
+  /* xs: 480px | sm: 640px | md: 768px | lg: 1024px |
+     xl: 1280px | 2xl: 1544px | 3xl: 1920px          */
 
-  /* ── BORDER RADIUS (aligned with official) ──────────────────────────── */
-  --radius-xs:                 1px;               /* 0.0625rem */
-  --radius-sm:                 2px;               /* 0.125rem */
-  --radius:                    3px;               /* 0.1875rem – official DEFAULT */
-  --radius-lg:                 5px;               /* 0.3125rem */
-  --radius-xl:                 6px;               /* 0.375rem */
-  --radius-2xl:                8px;               /* 0.5rem */
-  --radius-3xl:                10px;              /* 0.625rem */
+  /* ── BORDER RADIUS (aligned with official Tailwind config) ─────────── */
+  --radius-xs:                 1px;
+  --radius-sm:                 2px;
+  --radius:                    3px;              /* DEFAULT */
+  --radius-lg:                 5px;
+  --radius-xl:                 6px;
+  --radius-2xl:                8px;
+  --radius-3xl:                10px;
   --radius-full:               9999px;
 
   /* ── SHADOWS (official dual-layer) ──────────────────────────────────── */
@@ -174,4 +193,106 @@
   --z-modal-backdrop:          300;
   --z-modal:                   400;
   --z-tooltip:                 500;
+}
+
+/* ── RESPONSIVE TOKEN OVERRIDES ─────────────────────────────────────────── */
+
+/* xs ≥480px */
+@media (min-width: 480px) {
+  :root {
+    --container-padding:       1.75rem;          /* px-7 (28px) */
+    --grid-gutter:             1.75rem;          /* gap-7 (28px) */
+  }
+}
+
+/* sm ≥640px */
+@media (min-width: 640px) {
+  :root {
+    --container-padding:       2.25rem;          /* px-9 (36px) */
+    --grid-gutter:             2.25rem;          /* gap-9 (36px) */
+  }
+}
+
+/* md ≥768px */
+@media (min-width: 768px) {
+  :root {
+    --top-header-py:           1rem;             /* py-4 (16px) */
+  }
+}
+
+/* lg ≥1024px */
+@media (min-width: 1024px) {
+  :root {
+    /* Typography – heading sizes scale up */
+    --text-display:            2.5rem;           /* text--4xl → lg:5xl */
+    --text-h1:                 2rem;             /* text--3xl → lg:4xl */
+    --text-h2:                 1.625rem;         /* text--2xl → lg:3xl */
+    --text-h3:                 1.375rem;         /* text--xl → lg:2xl */
+
+    /* Layout */
+    --container-padding:       2.5rem;           /* px-10 (40px) */
+    --grid-gutter:             2.5rem;           /* gap-10 (40px) */
+    --section-py:              5rem;             /* py-20 (80px) */
+    --section-py-half:         2.5rem;           /* py-10 (40px) */
+    --top-header-py:           1.5rem;           /* py-6 (24px) */
+  }
+}
+
+/* xl ≥1280px */
+@media (min-width: 1280px) {
+  :root {
+    /* Typography – ALL sizes scale up */
+    --text-display:            3rem;             /* text--4xl → xl:6xl */
+    --text-h1:                 2.5rem;           /* text--3xl → xl:5xl */
+    --text-h2:                 2rem;             /* text--2xl → xl:4xl */
+    --text-h3:                 1.625rem;         /* text--xl → xl:3xl */
+    --text-h4:                 1.25rem;          /* text--lg → xl:xl */
+    --text-h5:                 1.125rem;         /* text--base → xl:lg */
+    --text-body:               1.125rem;         /* text--base → xl:lg */
+    --text-body-sm:            1rem;             /* text--sm → xl:base */
+    --text-body-xs:            0.875rem;         /* text--xs → xl:sm */
+    --text-caption:            0.875rem;
+    --text-label:              1rem;
+
+    /* Layout */
+    --container-padding:       3rem;             /* px-12 (48px) */
+    --grid-gutter:             3rem;             /* gap-12 (48px) */
+    --top-header-py:           2rem;             /* py-8 (32px) */
+
+    /* Buttons */
+    --btn-min-h:               48px;
+    --btn-sm-min-h:            40px;
+    --btn-lg-min-h:            52px;
+  }
+}
+
+/* 3xl ≥1920px */
+@media (min-width: 1920px) {
+  :root {
+    /* Typography – final scale */
+    --text-display:            3.5rem;           /* text--4xl → 3xl:7xl */
+    --text-h1:                 3rem;             /* text--3xl → 3xl:6xl */
+    --text-h2:                 2.5rem;           /* text--2xl → 3xl:5xl */
+    --text-h3:                 2rem;             /* text--xl → 3xl:4xl */
+    --text-h4:                 1.375rem;         /* text--lg → 3xl:2xl */
+    --text-h5:                 1.25rem;          /* text--base → 3xl:xl */
+    --text-body:               1.25rem;          /* text--base → 3xl:xl */
+    --text-body-sm:            1.125rem;         /* text--sm → 3xl:lg */
+    --text-body-xs:            1rem;             /* text--xs → 3xl:base */
+    --text-caption:            1rem;
+    --text-label:              1.125rem;
+
+    /* Layout */
+    --container-max-width:     1676px;           /* 3xl container */
+    --container-padding:       4rem;             /* px-16 (64px) */
+    --grid-gutter:             4rem;             /* gap-16 (64px) */
+    --section-py:              8rem;             /* py-32 (128px) */
+    --section-py-half:         4rem;             /* py-16 (64px) */
+    --top-header-py:           2.5rem;           /* py-10 (40px) */
+
+    /* Buttons */
+    --btn-min-h:               52px;
+    --btn-sm-min-h:            44px;
+    --btn-lg-min-h:            56px;
+  }
 }

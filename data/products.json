@@ -1,5 +1,5 @@
 [
-  { "id": 1, "name": "Barhocker Dietiker Ono", "description": "Designer This Weber, Holz/Leder schwarz", "price": 63.00, "currency": "CHF", "category": "stuehle", "subcategory": "barhocker", "brand": "Dietiker", "isNew": false, "isCircular": false },
+  { "id": 1, "name": "Barhocker Dietiker Ono", "description": "Design: This Weber. Holz/Leder schwarz", "price": 63.00, "currency": "CHF", "category": "stuehle", "subcategory": "barhocker", "brand": "Dietiker", "isNew": false, "isCircular": false },
   { "id": 2, "name": "Bistrostuhl KIR", "description": "Schwarz-Aluminium", "price": 30.00, "currency": "CHF", "category": "stuehle", "subcategory": "cafeteria-stuehle", "brand": "KIR", "isNew": false, "isCircular": false },
   { "id": 3, "name": "B\u00fcrostuhl Giroflex 64 Anthrazit", "description": "Ergonomischer Drehstuhl", "price": 180.00, "currency": "CHF", "category": "stuehle", "subcategory": "buerostuehle", "brand": "Giroflex", "isNew": true, "isCircular": false },
   { "id": 4, "name": "B\u00fcrostuhl Giroflex 64 Blau", "description": "Ergonomischer Drehstuhl, Stoffbezug blau", "price": 180.00, "currency": "CHF", "category": "stuehle", "subcategory": "buerostuehle", "brand": "Giroflex", "isNew": false, "isCircular": false },
