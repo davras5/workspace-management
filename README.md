@@ -1,6 +1,6 @@
 # BBL Workspace Management
 
-A single-page application (SPA) prototype for the Swiss Federal Office for Buildings and Logistics (BBL). It manages workspace infrastructure — furniture ordering, office planning, circular economy, and building occupancy — for the Swiss Federal Administration.
+A single-page application (SPA) prototype for the Swiss Federal Office for Buildings and Logistics (BBL). It manages workspace infrastructure — furniture ordering, office planning, circular economy, and building occupancy.
 
 <p align="center">
   <img src="assets/Preview1.jpg" width="45%" style="vertical-align: top;"/>
