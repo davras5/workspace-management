@@ -605,7 +605,7 @@ ul, ol { list-style: none; }
 /* ===== PRODUCT GRID ===== */
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: var(--grid-gutter);
 }
 
@@ -2939,7 +2939,7 @@ ul, ol { list-style: none; }
 /* ---- Gallery (portfolio tab) ---- */
 .rp-gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: var(--space-lg);
 }
 
@@ -3226,10 +3226,10 @@ ul, ol { list-style: none; }
   .main-content { padding: var(--space-md); }
 }
 
-/* Very large screens: 4-column product grid */
+/* Very large screens: cap at 3-column product grid */
 @media (min-width: 1400px) {
   .product-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
