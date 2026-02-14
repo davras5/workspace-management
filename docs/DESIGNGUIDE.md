@@ -385,9 +385,9 @@ Der Header folgt dem 3-zeiligen admin.ch-Muster:
 
 - Hintergrund: weiss
 - Responsive vertikales Padding: `--top-header-py` (12px → 40px)
-- Links: Wappen (34px) + Viersprachiger Text + Divider + Departementsname
-- Rechts: Meta-Navigation (Jobs, Kontakt, Medien) + Suche + Warenkorb
-- Meta-Navigation: Getrennt durch vertikale Linie, hidden auf Mobile
+- Links: Wappen (30×33px → 32×34px lg → 40×44px 3xl) + Viersprachiger Text (hidden below xl) + Divider (responsive 40/56/70px) + Departementsname
+- Rechts: Meta-Navigation (Jobs, Kontakt, Medien, hidden below lg) + Suche + Warenkorb
+- Font-size: `--text-body-sm`, scales to `--text-body` at 3xl
 - Wappen fungiert als Home-Link
 
 ### 5.3 Navigation Bar
@@ -683,7 +683,7 @@ BEM-artige Konvention:
 | `#/shop`       | Produktkatalog               | shop         |
 | `#/product/:id`| Produktdetail                | shop         |
 | `#/planung`    | Arbeitsplaetze gestalten     | planung      |
-| `#/grundriss`  | Raumplanung                  | grundriss    |
+| `#/grundriss`  | Belegungsplanung             | grundriss    |
 | `#/circular`   | Gebrauchte Moebel            | circular     |
 | `#/scan`       | Objekt scannen               | circular     |
 | `#/erfassen`   | Neues Objekt erfassen        | circular     |
@@ -749,7 +749,7 @@ Beschaffungsstellen, Bueroplanende). Der Tonfall ist:
 | Moebelbezeichnung     | "Mobiliar"                      | "Moebel" (informell)             |
 | Zielgruppe intern     | "Bundesstellen" / "Bedarfsstellen" | "Kunden"                      |
 | Bestellprozess        | "In den Warenkorb"              | "Bestellen" (impliziert Sofortkauf) |
-| Planung               | "Raumplanung"                   | "Arbeitsplaetze verwalten" (irreführend) |
+| Planung               | "Belegungsplanung"              | "Arbeitsplaetze verwalten" (irreführend) |
 | Englisch              | Deutsche Entsprechung           | Anglizismus (Workspace, etc.)    |
 | Wiederverwendung      | "wiederverwenden"               | "weiternutzen" (unscharf)        |
 
@@ -759,7 +759,7 @@ Beschaffungsstellen, Bueroplanende). Der Tonfall ist:
 |-----------------------|---------------------------------|----------------------------------|----------------------------------|
 | Produktkatalog        | Produktkatalog                  | Produktkatalog                   | (kein eigener h1)                |
 | Arbeitsplaetze        | Arbeitsplaetze gestalten        | Arbeitsplaetze gestalten         | Arbeitsplaetze gestalten         |
-| Raumplanung           | Raumplanung                     | Raumplanung                      | Raumplanung (in Entwicklung)     |
+| Belegungsplanung      | Belegungsplanung                | Belegungsplanung                 | Belegungsplanung (in Entwicklung)|
 | Gebrauchte Moebel     | Gebrauchte Moebel               | Gebrauchte Moebel                | Gebrauchte Moebel                |
 | Circular Sub-Seiten   | —                               | Gebrauchte Moebel > [Sub]        | [Sub-Titel]                      |
 | Planung Sub-Seiten    | —                               | Arbeitsplaetze gestalten > [Sub] | [Sub-Titel]                      |

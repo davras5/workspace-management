@@ -3,14 +3,124 @@
 // ===================================================================
 let CATEGORIES = [];
 let PRODUCTS = [];
+let SITES = [];
+let BUILDINGS = [];
+let FLOORS = [];
+let BUILDINGS_GEO = null;
+let FURNITURE_ITEMS = [];
+let STILWELTEN = [];
+let PLANUNGSBEISPIELE = [];
+let CAD_SECTIONS = [];
+let LOCATIONS = { id: 'ch', label: 'Schweiz', type: 'country', count: 0, children: [] };
 
 async function loadData() {
-  const [catRes, prodRes] = await Promise.all([
+  const [catRes, prodRes, siteRes, bldRes, flrRes, furnRes, stilRes, planRes, cadRes] = await Promise.all([
     fetch('data/categories.json'),
-    fetch('data/products.json')
+    fetch('data/products.json'),
+    fetch('data/sites.json'),
+    fetch('data/buildings.json'),
+    fetch('data/floors.json'),
+    fetch('data/furniture-items.json'),
+    fetch('data/stilwelten.json'),
+    fetch('data/planungsbeispiele.json'),
+    fetch('data/cad-sections.json')
   ]);
   CATEGORIES = await catRes.json();
   PRODUCTS = await prodRes.json();
+  SITES = await siteRes.json();
+  BUILDINGS = await bldRes.json();
+  FLOORS = await flrRes.json();
+  FURNITURE_ITEMS = await furnRes.json();
+  STILWELTEN = await stilRes.json();
+  PLANUNGSBEISPIELE = await planRes.json();
+  CAD_SECTIONS = await cadRes.json();
+
+  // Build GeoJSON from buildings data
+  BUILDINGS_GEO = {
+    type: 'FeatureCollection',
+    features: BUILDINGS.map(b => ({
+      type: 'Feature',
+      id: b.buildingId,
+      properties: {
+        buildingId: b.buildingId,
+        siteId: b.siteId,
+        name: b.name,
+        objectCode: b.objectCode,
+        category: b.category,
+        areaGross: b.areaGross
+      },
+      geometry: {
+        type: 'Point',
+        coordinates: [b.coords[1], b.coords[0]]
+      }
+    }))
+  };
+  buildLocationTree();
+}
+
+function buildLocationTree() {
+  // Build floor nodes grouped by building
+  const floorsByBuilding = {};
+  for (const f of FLOORS) {
+    if (!floorsByBuilding[f.buildingId]) floorsByBuilding[f.buildingId] = [];
+    floorsByBuilding[f.buildingId].push({
+      id: f.floorId,
+      label: f.name,
+      type: 'floor',
+      flaeche: f.areaGross ? f.areaGross.toLocaleString('de-CH') + ' m\u00b2' : '',
+      plaetze: f.workspaceCount || 0,
+      raeume: f.roomCount || 0,
+      rooms: f.rooms || []
+    });
+  }
+  // Sort floors by verticalOrder
+  for (const bid in floorsByBuilding) {
+    const floorData = FLOORS.filter(f => f.buildingId === bid);
+    floorsByBuilding[bid].sort((a, b) => {
+      const fa = floorData.find(f => f.floorId === a.id);
+      const fb = floorData.find(f => f.floorId === b.id);
+      return (fa ? fa.verticalOrder : 0) - (fb ? fb.verticalOrder : 0);
+    });
+  }
+
+  // Build building nodes grouped by site
+  const buildingsBySite = {};
+  for (const b of BUILDINGS) {
+    if (!buildingsBySite[b.siteId]) buildingsBySite[b.siteId] = [];
+    buildingsBySite[b.siteId].push({
+      id: b.buildingId,
+      label: b.name,
+      code: b.objectCode,
+      address: b.address.street + ', ' + b.address.postalCode + ' ' + b.address.city,
+      type: 'building',
+      photo: b.photo,
+      coords: b.coords,
+      baujahr: b.yearBuilt,
+      status: b.status,
+      kategorie: b.category,
+      flaeche: b.areaGross ? b.areaGross.toLocaleString('de-CH') + ' m\u00b2' : '',
+      children: floorsByBuilding[b.buildingId] || []
+    });
+  }
+
+  // Build site nodes
+  const siteNodes = SITES.map(s => ({
+    id: s.siteId,
+    label: s.name,
+    type: 'kanton',
+    count: (buildingsBySite[s.siteId] || []).length,
+    children: buildingsBySite[s.siteId] || []
+  }));
+
+  // Assemble root
+  const totalCount = siteNodes.reduce((sum, s) => sum + s.count, 0);
+  LOCATIONS = {
+    id: 'ch',
+    label: 'Schweiz',
+    type: 'country',
+    count: totalCount,
+    children: siteNodes
+  };
 }
 
 // ===================================================================
@@ -32,87 +142,28 @@ let state = {
   searchFilterCategory: '',
   searchFilterBrand: '',
   searchSortBy: 'name-asc',
-  // Raumplanung
-  rpSelectedId: null,
-  rpExpandedIds: new Set(['ch']),
-  rpTab: 'karte'
+  // Occupancy planning
+  occSelectedId: null,
+  occExpandedIds: new Set(['ch']),
+  occTab: 'map',
+  occMapStyle: 'light-v11'
 };
 
-// ===================================================================
-// RAUMPLANUNG – LOCATION DATA
-// ===================================================================
-const LOCATIONS = {
-  id: 'ch', label: 'Schweiz', type: 'country', count: 230, children: [
-    { id: 'be', label: 'Bern', type: 'kanton', count: 45, children: [
-      { id: 'b-001', label: 'Bundeshaus Ost', code: '1502.AB.0', address: 'Bundesgasse 3, 3003 Bern', type: 'building',
-        photo: 'photo-1486406146926-c627a92ad1ab', coords: [46.9480, 7.4474], baujahr: '1892', status: 'Geb\u00e4ude bestehend', kategorie: 'Verwaltungsgeb\u00e4ude', flaeche: '12\u2009450 m\u00b2',
-        children: [
-          { id: 'b-001-ug', label: 'UG', type: 'floor', flaeche: '1\u2009820 m\u00b2', plaetze: 0, raeume: 14 },
-          { id: 'b-001-eg', label: 'EG', type: 'floor', flaeche: '2\u2009650 m\u00b2', plaetze: 42, raeume: 22 },
-          { id: 'b-001-1', label: '1. OG', type: 'floor', flaeche: '2\u2009650 m\u00b2', plaetze: 58, raeume: 24 },
-          { id: 'b-001-2', label: '2. OG', type: 'floor', flaeche: '2\u2009650 m\u00b2', plaetze: 56, raeume: 23 },
-          { id: 'b-001-3', label: '3. OG', type: 'floor', flaeche: '1\u2009680 m\u00b2', plaetze: 34, raeume: 18 }
-        ]},
-      { id: 'b-002', label: 'Bundeshaus West', code: '1502.AB.1', address: 'Bundesplatz 3, 3003 Bern', type: 'building',
-        photo: 'photo-1577495508048-b635879837f1', coords: [46.9468, 7.4441], baujahr: '1857', status: 'Geb\u00e4ude bestehend', kategorie: 'Verwaltungsgeb\u00e4ude', flaeche: '9\u2009800 m\u00b2',
-        children: [
-          { id: 'b-002-eg', label: 'EG', type: 'floor', flaeche: '2\u2009100 m\u00b2', plaetze: 30, raeume: 18 },
-          { id: 'b-002-1', label: '1. OG', type: 'floor', flaeche: '2\u2009100 m\u00b2', plaetze: 44, raeume: 20 },
-          { id: 'b-002-2', label: '2. OG', type: 'floor', flaeche: '2\u2009100 m\u00b2', plaetze: 40, raeume: 19 }
-        ]},
-      { id: 'b-003', label: 'Verwaltungsgeb\u00e4ude Hallwyl', code: '1504.BA.0', address: 'Hallwylstrasse 15, 3003 Bern', type: 'building',
-        photo: 'photo-1554435493-93422e8220c8', coords: [46.9440, 7.4510], baujahr: '1975', status: 'Geb\u00e4ude bestehend', kategorie: 'Verwaltungsgeb\u00e4ude', flaeche: '8\u2009200 m\u00b2',
-        children: [
-          { id: 'b-003-ug', label: 'UG', type: 'floor', flaeche: '1\u2009200 m\u00b2', plaetze: 0, raeume: 8 },
-          { id: 'b-003-eg', label: 'EG', type: 'floor', flaeche: '1\u2009750 m\u00b2', plaetze: 28, raeume: 16 },
-          { id: 'b-003-1', label: '1. OG', type: 'floor', flaeche: '1\u2009750 m\u00b2', plaetze: 48, raeume: 20 },
-          { id: 'b-003-2', label: '2. OG', type: 'floor', flaeche: '1\u2009750 m\u00b2', plaetze: 46, raeume: 19 }
-        ]}
-    ]},
-    { id: 'zh', label: 'Z\u00fcrich', type: 'kanton', count: 15, children: [
-      { id: 'b-010', label: 'Zollkreisdirektion', code: '2001.ZH.0', address: 'Seestrasse 356, 8038 Z\u00fcrich', type: 'building',
-        photo: 'photo-1497366811353-6870744d04b2', coords: [47.3440, 8.5280], baujahr: '1960', status: 'Geb\u00e4ude bestehend', kategorie: 'Verwaltungsgeb\u00e4ude', flaeche: '4\u2009600 m\u00b2',
-        children: [
-          { id: 'b-010-eg', label: 'EG', type: 'floor', flaeche: '1\u2009150 m\u00b2', plaetze: 18, raeume: 12 },
-          { id: 'b-010-1', label: '1. OG', type: 'floor', flaeche: '1\u2009150 m\u00b2', plaetze: 24, raeume: 14 },
-          { id: 'b-010-2', label: '2. OG', type: 'floor', flaeche: '1\u2009150 m\u00b2', plaetze: 22, raeume: 13 }
-        ]},
-      { id: 'b-011', label: 'Bundesasylzentrum', code: '2002.ZH.0', address: 'D\u00fcttweilerstrasse 100, 8005 Z\u00fcrich', type: 'building',
-        photo: 'photo-1497215842964-222b430dc094', coords: [47.3890, 8.5170], baujahr: '2018', status: 'Geb\u00e4ude bestehend', kategorie: 'Spezialgeb\u00e4ude', flaeche: '6\u2009200 m\u00b2',
-        children: [
-          { id: 'b-011-eg', label: 'EG', type: 'floor', flaeche: '2\u2009100 m\u00b2', plaetze: 10, raeume: 8 },
-          { id: 'b-011-1', label: '1. OG', type: 'floor', flaeche: '2\u2009050 m\u00b2', plaetze: 12, raeume: 10 }
-        ]}
-    ]},
-    { id: 'bs', label: 'Basel', type: 'kanton', count: 12, children: [
-      { id: 'b-020', label: 'Zollverwaltung Nord', code: '3001.BS.0', address: 'Elisabethenstrasse 31, 4010 Basel', type: 'building',
-        photo: 'photo-1497366216548-37526070297c', coords: [47.5500, 7.5886], baujahr: '1985', status: 'Geb\u00e4ude bestehend', kategorie: 'Verwaltungsgeb\u00e4ude', flaeche: '5\u2009100 m\u00b2',
-        children: [
-          { id: 'b-020-eg', label: 'EG', type: 'floor', flaeche: '1\u2009275 m\u00b2', plaetze: 20, raeume: 14 },
-          { id: 'b-020-1', label: '1. OG', type: 'floor', flaeche: '1\u2009275 m\u00b2', plaetze: 28, raeume: 16 },
-          { id: 'b-020-2', label: '2. OG', type: 'floor', flaeche: '1\u2009275 m\u00b2', plaetze: 26, raeume: 15 }
-        ]}
-    ]},
-    { id: 'lu', label: 'Luzern', type: 'kanton', count: 8, children: [
-      { id: 'b-030', label: 'Bundesgeb\u00e4ude Luzern', code: '4001.LU.0', address: 'Bahnhofstrasse 20, 6002 Luzern', type: 'building',
-        photo: 'photo-1524758631624-e2822e304c36', coords: [47.0502, 8.3093], baujahr: '1970', status: 'Geb\u00e4ude bestehend', kategorie: 'Verwaltungsgeb\u00e4ude', flaeche: '3\u2009800 m\u00b2',
-        children: [
-          { id: 'b-030-eg', label: 'EG', type: 'floor', flaeche: '950 m\u00b2', plaetze: 14, raeume: 10 },
-          { id: 'b-030-1', label: '1. OG', type: 'floor', flaeche: '950 m\u00b2', plaetze: 20, raeume: 12 },
-          { id: 'b-030-2', label: '2. OG', type: 'floor', flaeche: '950 m\u00b2', plaetze: 18, raeume: 11 }
-        ]}
-    ]}
-  ]
+const MAP_STYLES = {
+  'light-v11': { name: 'Light', url: 'mapbox://styles/mapbox/light-v11' },
+  'streets-v12': { name: 'Standard', url: 'mapbox://styles/mapbox/streets-v12' },
+  'satellite-v9': { name: 'Luftbild', url: 'mapbox://styles/mapbox/satellite-v9' },
+  'satellite-streets-v12': { name: 'Hybrid', url: 'mapbox://styles/mapbox/satellite-streets-v12' }
 };
 
 // Helper: find a node + its parent chain by id
-function rpFindNode(id, node, path) {
+function occFindNode(id, node, path) {
   if (!node) node = LOCATIONS;
   if (!path) path = [];
   if (node.id === id) return { node, path };
   if (node.children) {
     for (const child of node.children) {
-      const result = rpFindNode(id, child, [...path, node]);
+      const result = occFindNode(id, child, [...path, node]);
       if (result) return result;
     }
   }
@@ -120,8 +171,8 @@ function rpFindNode(id, node, path) {
 }
 
 // Helper: get the parent building for a floor node
-function rpGetParentBuilding(floorId) {
-  const result = rpFindNode(floorId);
+function occGetParentBuilding(floorId) {
+  const result = occFindNode(floorId);
   if (!result) return null;
   return result.path.find(n => n.type === 'building') || null;
 }
@@ -206,52 +257,8 @@ const ICONS = {
   misc: `<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.9"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="8" x2="12" y2="16"/></svg>`
 };
 
-// Unsplash placeholder images per product ID
-const PRODUCT_IMAGES = {
-  1:  'photo-1503602642458-232111445657',  // bar stool
-  2:  'photo-1567538096630-e0c55bd6374c',     // bistro chair
-  3:  'photo-1580480055273-228ff5388ef8',  // office chair dark
-  4:  'photo-1616627547584-bf28cee262db',  // office chair blue
-  5:  'photo-1586023492125-27b2c045efd7',  // executive chair
-  6:  'photo-1506439773649-6e0eb8cfb237',  // stacking chair
-  7:  'photo-1561677978-583a8c7a4b43',     // wood chair classic
-  8:  'photo-1549187774-b4e9b0445b41',     // wood stacking chair
-  9:  'photo-1592078615290-033ee584e267',   // cantilever chair
-  10: 'photo-1595428774223-ef52624120d2',   // USM shelving
-  11: 'photo-1518455027359-f3f8164ba6bd',   // desk workspace
-  12: 'photo-1573164713988-8665fc963095',   // desk lamp
-  13: 'photo-1595526114035-0d45ed16cfbf',   // rolling stool
-  14: 'photo-1493663284031-b7e3aefcae8e',      // sideboard
-  15: 'photo-1462826303086-329426d1aef5',   // conference table
-  16: 'photo-1558997519-83ea9252edf8',      // filing cabinet
-  17: 'photo-1580480055273-228ff5388ef8',   // office chair (used)
-  18: 'photo-1595428774223-ef52624120d2',   // USM shelf (used)
-  19: 'photo-1592078615290-033ee584e267',   // visitor chair (used)
-  20: 'photo-1598300042247-d088f8ab3a91',   // saddle chair
-  21: 'photo-1580480055273-228ff5388ef8',   // task chair
-  22: 'photo-1581539250439-c96689b516dd',   // conference chair
-  23: 'photo-1611269154421-4e27233ac5c7',   // USM Kitos desk
-  24: 'photo-1593642632559-0c6d3fc62b89',   // sit-stand desk
-  25: 'photo-1532372576444-dda954194ad0',   // side table
-  26: 'photo-1577412647305-991150c7d163',   // standing table
-  27: 'photo-1513506003901-1e6a229e2d15',   // floor lamp
-  28: 'photo-1558997519-83ea9252edf8',      // filing cabinet
-  29: 'photo-1594620302200-9a762244a156',   // wall shelf
-  30: 'photo-1594620302200-9a762244a156',   // bookshelf
-  31: 'photo-1493663284031-b7e3aefcae8e',      // pedestal
-  32: 'photo-1493663284031-b7e3aefcae8e',      // USM pedestal
-  33: 'photo-1524758631624-e2822e304c36',   // coat stand
-  34: 'photo-1524758631624-e2822e304c36',   // flipchart
-  35: 'photo-1555041469-a586c61ea9bc',      // sofa
-  36: 'photo-1497215842964-222b430dc094',   // acoustic panel
-  37: 'photo-1518455027359-f3f8164ba6bd',   // desk (used)
-  38: 'photo-1573164713988-8665fc963095',   // lamp (used)
-  39: 'photo-1581539250439-c96689b516dd',   // conference chair (used)
-  40: 'photo-1493663284031-b7e3aefcae8e',      // pedestal (used)
-};
-
 function getProductImage(product) {
-  const photoId = PRODUCT_IMAGES[product.id];
+  const photoId = product.photo;
   if (photoId) {
     return `<img src="https://images.unsplash.com/${photoId}?w=600&h=400&fit=crop&auto=format&q=80" srcset="https://images.unsplash.com/${photoId}?w=400&h=267&fit=crop&auto=format&q=80 400w, https://images.unsplash.com/${photoId}?w=600&h=400&fit=crop&auto=format&q=80 600w, https://images.unsplash.com/${photoId}?w=800&h=533&fit=crop&auto=format&q=80 800w" sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 280px" alt="${product.name}" loading="lazy">`;
   }
@@ -335,9 +342,16 @@ function getAllSubcategoryIds(catId) {
 }
 
 function countProductsInCategory(catId) {
-  if (catId === 'alle') return PRODUCTS.filter(p => !p.isCircular).length;
+  if (catId === 'alle') return PRODUCTS.length;
   const ids = getAllSubcategoryIds(catId);
-  return PRODUCTS.filter(p => !p.isCircular && (ids.includes(p.category) || ids.includes(p.subcategory))).length;
+  return PRODUCTS.filter(p => ids.includes(p.category) || ids.includes(p.subcategory)).length;
+}
+
+function countFurnitureInCategory(catId) {
+  const available = FURNITURE_ITEMS.filter(f => f.status === 'Zur Abgabe');
+  if (catId === 'alle') return available.length;
+  const ids = getAllSubcategoryIds(catId);
+  return available.filter(f => ids.includes(f.categoryId)).length;
 }
 
 // ---- BREADCRUMB HELPER ----
@@ -355,7 +369,7 @@ function renderBreadcrumb(...items) {
       html += `<span class="breadcrumb__current">${item[0]}</span>`;
     }
   }
-  return `<nav class="breadcrumb" aria-label="Breadcrumb">${html}</nav>`;
+  return `<div class="breadcrumb-bar"><nav class="breadcrumb" aria-label="Breadcrumb">${html}</nav></div>`;
 }
 
 function findCategory(id) {
@@ -373,7 +387,7 @@ function findCategory(id) {
 }
 
 function filterProducts() {
-  let filtered = PRODUCTS.filter(p => !p.isCircular);
+  let filtered = [...PRODUCTS];
 
   if (state.activeCategory !== 'alle') {
     const ids = getAllSubcategoryIds(state.activeCategory);
@@ -411,20 +425,20 @@ function filterProducts() {
   return filtered;
 }
 
-function filterCircularProducts() {
-  let filtered = PRODUCTS.filter(p => p.isCircular);
+function filterFurnitureItems() {
+  let filtered = FURNITURE_ITEMS.filter(f => f.status === 'Zur Abgabe');
 
   if (state.activeCategory !== 'alle') {
     const ids = getAllSubcategoryIds(state.activeCategory);
-    filtered = filtered.filter(p => ids.includes(p.category) || ids.includes(p.subcategory));
+    filtered = filtered.filter(f => ids.includes(f.categoryId));
   }
 
   if (state.searchQuery) {
     const q = state.searchQuery.toLowerCase();
-    filtered = filtered.filter(p =>
-      p.name.toLowerCase().includes(q) ||
-      p.description.toLowerCase().includes(q) ||
-      p.brand.toLowerCase().includes(q)
+    filtered = filtered.filter(f =>
+      f.name.toLowerCase().includes(q) ||
+      f.description.toLowerCase().includes(q) ||
+      f.brand.toLowerCase().includes(q)
     );
   }
 
@@ -453,8 +467,8 @@ function render() {
   const app = document.getElementById('app');
 
   // Update nav active states
-  const activePage = ['scan', 'erfassen', 'charta'].includes(state.page) ? 'circular'
-                   : ['stilwelten', 'planungsbeispiele', 'cad'].includes(state.page) ? 'planung'
+  const activePage = ['scan', 'register', 'charter', 'item'].includes(state.page) ? 'circular'
+                   : ['style-worlds', 'examples', 'cad'].includes(state.page) ? 'planning'
                    : state.page;
   document.querySelectorAll('.main-navigation__link').forEach(link => {
     const nav = link.dataset.nav;
@@ -474,14 +488,15 @@ function render() {
     case 'home': app.innerHTML = renderHome(); break;
     case 'shop': app.innerHTML = renderShop(); attachShopEvents(); break;
     case 'product': app.innerHTML = renderProductDetail(state.productId); attachProductDetailEvents(); break;
-    case 'planung': app.innerHTML = renderPlanung(); break;
-    case 'grundriss': app.innerHTML = renderGrundriss(); attachGrundrissEvents(); break;
+    case 'item': app.innerHTML = renderFurnitureDetail(state.subPage); break;
+    case 'planning': app.innerHTML = renderPlanning(); break;
+    case 'occupancy': app.innerHTML = renderOccupancy(); attachOccupancyEvents(); break;
     case 'circular': app.innerHTML = renderCircular(); attachShopEvents(); break;
     case 'scan': app.innerHTML = renderScan(); break;
-    case 'erfassen': app.innerHTML = renderErfassen(); break;
-    case 'charta': app.innerHTML = renderCharta(); break;
-    case 'stilwelten': app.innerHTML = renderStilwelten(); break;
-    case 'planungsbeispiele': app.innerHTML = renderPlanungsbeispiele(); break;
+    case 'register': app.innerHTML = renderRegister(); break;
+    case 'charter': app.innerHTML = renderCharter(); break;
+    case 'style-worlds': app.innerHTML = renderStyleWorlds(); break;
+    case 'examples': app.innerHTML = renderExamples(); break;
     case 'cad': app.innerHTML = renderCad(); attachAccordionEvents(); break;
     case 'cart': app.innerHTML = renderCart(); attachCartEvents(); break;
     case 'search': app.innerHTML = renderSearch(); attachSearchEvents(); break;
@@ -498,7 +513,7 @@ function renderHome() {
         <p class="hero__description">Die Plattform f\u00fcr die Einrichtung und Verwaltung von Arbeitspl\u00e4tzen in der Bundesverwaltung. Mobiliar bestellen, R\u00e4ume planen, gebrauchte M\u00f6bel wiederverwenden.</p>
         <div class="hero__cta">
           <a href="#/shop" class="btn btn--filled btn--lg" onclick="navigateTo('shop');return false">Zum Produktkatalog ${ICONS.arrowRight}</a>
-          <a href="#/planung" class="btn btn--outline btn--lg" onclick="navigateTo('planung');return false">Arbeitspl\u00e4tze gestalten ${ICONS.arrowRight}</a>
+          <a href="#/planung" class="btn btn--outline btn--lg" onclick="navigateTo('planning');return false">Arbeitspl\u00e4tze gestalten ${ICONS.arrowRight}</a>
         </div>
       </div>
       <div class="hero__image">
@@ -516,7 +531,7 @@ function renderHome() {
           <p class="card__description">B\u00fcrom\u00f6bel, Sitzm\u00f6bel, Beleuchtung und Zubeh\u00f6r bestellen. Alle Produkte entsprechen den Standards der Bundesverwaltung.</p>
           <div class="card__arrow"><span class="card__arrow-icon">&rarr;</span></div>
         </div>
-        <div class="card card--centered card--clickable" onclick="navigateTo('planung')" role="button" tabindex="0">
+        <div class="card card--centered card--clickable" onclick="navigateTo('planning')" role="button" tabindex="0">
           <h3 class="card__title">Arbeitspl\u00e4tze gestalten</h3>
           <p class="card__description">Stilwelten, Planungsbeispiele und CAD-Daten f\u00fcr die B\u00fcroplanung. Vorlagen und Konzepte f\u00fcr die Einrichtung von Arbeitspl\u00e4tzen.</p>
           <div class="card__arrow"><span class="card__arrow-icon">&rarr;</span></div>
@@ -532,7 +547,7 @@ function renderHome() {
     <section class="section">
       <h2 class="section__title">Neuheiten</h2>
       <div class="product-grid product-grid--spaced">
-        ${PRODUCTS.filter(p => p.isNew && !p.isCircular).slice(0, 6).map(p => renderProductCard(p)).join('')}
+        ${PRODUCTS.filter(p => p.isNew).slice(0, 6).map(p => renderProductCard(p)).join('')}
       </div>
       <div class="section-link">
         <a href="#/shop" class="section-link__a" onclick="navigateTo('shop');return false">Alle Produkte anzeigen &rarr;</a>
@@ -542,21 +557,22 @@ function renderHome() {
 }
 
 // ---- CATEGORY TREE ----
-function renderCategoryTree(categories) {
+function renderCategoryTree(categories, countFn) {
+  if (!countFn) countFn = countProductsInCategory;
   return categories.map(cat => {
     const hasChildren = cat.children && cat.children.length > 0;
     const isExpanded = state.expandedCategories.has(cat.id);
     const isActive = state.activeCategory === cat.id;
-    const count = countProductsInCategory(cat.id);
+    const count = countFn(cat.id);
     return `
       <div class="cat-item">
-        <div class="cat-item__row" data-cat-id="${cat.id}" role="treeitem" aria-expanded="${hasChildren ? isExpanded : ''}" tabindex="0">
+        <div class="cat-item__row ${isActive ? 'cat-item__row--active' : ''}" data-cat-id="${cat.id}" role="treeitem" aria-expanded="${hasChildren ? isExpanded : ''}" tabindex="0">
           <div class="cat-item__radio ${isActive ? 'cat-item__radio--active' : ''}"></div>
           <span class="cat-item__label">${cat.label}</span>
           ${count > 0 && cat.id !== 'alle' ? `<span class="cat-item__count">${count}</span>` : ''}
           ${hasChildren ? `<span class="cat-item__toggle ${isExpanded ? 'cat-item__toggle--open' : ''}">\u203A</span>` : ''}
         </div>
-        ${hasChildren ? `<div class="cat-item__children ${isExpanded ? 'cat-item__children--open' : ''}">${renderCategoryTree(cat.children)}</div>` : ''}
+        ${hasChildren ? `<div class="cat-item__children ${isExpanded ? 'cat-item__children--open' : ''}">${renderCategoryTree(cat.children, countFn)}</div>` : ''}
       </div>
     `;
   }).join('');
@@ -577,8 +593,10 @@ function renderShop() {
   }
 
   return `
-    <div class="container container--with-top-pad container--no-bottom">
-      ${renderBreadcrumb(...bcItems)}
+    ${renderBreadcrumb(...bcItems)}
+    <div class="page-hero">
+      <h1 class="page-hero__title">Produktkatalog</h1>
+      <p class="page-hero__subtitle">B&uuml;rom&ouml;bel, Sitzm&ouml;bel, Beleuchtung und Zubeh&ouml;r f&uuml;r die Bundesverwaltung bestellen.</p>
     </div>
     <div class="app-layout">
       <aside class="sidebar" role="navigation" aria-label="Kategorien">
@@ -624,7 +642,6 @@ function renderProductCard(p) {
       <div class="card__image card__image--placeholder">
         ${getProductImage(p)}
         ${p.isNew ? '<span class="badge badge--new">Neu</span>' : ''}
-        ${p.isCircular ? '<span class="badge badge--circular">Gebraucht</span>' : ''}
       </div>
       <div class="card__body">
         <div class="card__title">${escapeHtml(p.name)}</div>
@@ -643,8 +660,8 @@ function renderProductDetail(id) {
   const p = PRODUCTS.find(x => x.id === id);
   if (!p) {
     return `
+      ${renderBreadcrumb(['Produktkatalog', "navigateTo('shop')"], ['Nicht gefunden'])}
       <div class="container container--with-top-pad" id="mainContent">
-        ${renderBreadcrumb(['Produktkatalog', "navigateTo('shop')"], ['Nicht gefunden'])}
         <div class="no-results">
           <div class="no-results__icon">${ICONS.placeholder}</div>
           <p class="no-results__text">Produkt nicht gefunden.</p>
@@ -670,8 +687,8 @@ function renderProductDetail(id) {
   const articleNr = 'ART-' + String(p.id).padStart(5, '0');
 
   return `
+    ${renderBreadcrumb(...bcItems)}
     <div class="container container--with-top-pad" id="mainContent">
-      ${renderBreadcrumb(...bcItems)}
       <div class="detail-toolbar">
         <button class="btn btn--outline btn--sm detail-toolbar__back" onclick="history.back()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/></svg>
@@ -690,7 +707,6 @@ function renderProductDetail(id) {
         <div class="product-detail__image">
           ${getProductImage(p)}
           ${p.isNew ? '<span class="badge badge--new">Neu</span>' : ''}
-          ${p.isCircular ? '<span class="badge badge--circular">Gebraucht</span>' : ''}
         </div>
         <div class="product-detail__info">
           <h1 class="product-detail__title">${escapeHtml(p.name)}</h1>
@@ -700,8 +716,6 @@ function renderProductDetail(id) {
             <span class="product-detail__meta-value">${escapeHtml(p.brand)}</span>
             <span class="product-detail__meta-label">Kategorie</span>
             <span class="product-detail__meta-value">${catLabel}</span>
-            ${p.isCircular ? `<span class="product-detail__meta-label">Zustand</span>
-            <span class="product-detail__meta-value">Gebraucht \u2013 guter Zustand</span>` : ''}
             <span class="product-detail__meta-label">Artikel-Nr.</span>
             <span class="product-detail__meta-value">${articleNr}</span>
           </div>
@@ -718,23 +732,118 @@ function renderProductDetail(id) {
   `;
 }
 
-// ---- PLANUNG ----
-function renderPlanung() {
+// ---- FURNITURE CARD ----
+function renderFurnitureCard(f) {
+  const building = BUILDINGS.find(b => b.buildingId === f.buildingId);
+  const locationLabel = building ? building.name : '';
   return `
+    <div class="card card--product" onclick="navigateTo('item','${f.itemId}')" tabindex="0" role="button" aria-label="${escapeHtml(f.name)}">
+      <div class="card__image card__image--placeholder">
+        ${f.photo ? `<img src="https://images.unsplash.com/${f.photo}?w=400&h=300&fit=crop&auto=format&q=80" alt="${escapeHtml(f.name)}" loading="lazy">` : ICONS.placeholder}
+        <span class="badge badge--circular">Gebraucht</span>
+      </div>
+      <div class="card__body">
+        <div class="card__title">${escapeHtml(f.name)}</div>
+        <div class="card__description">${escapeHtml(f.description)}</div>
+        <div class="card__price">${f.currency} ${f.price.toFixed(2)}</div>
+      </div>
+      <div class="card__footer">
+        <span class="card__brand">${escapeHtml(f.brand)}</span>
+        ${locationLabel ? `<span class="card__location">${escapeHtml(locationLabel)}</span>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+// ---- FURNITURE DETAIL ----
+function renderFurnitureDetail(itemId) {
+  const f = FURNITURE_ITEMS.find(x => x.itemId === itemId);
+  if (!f) {
+    return `
+      ${renderBreadcrumb(['Gebrauchte M\u00f6bel', "navigateTo('circular')"], ['Nicht gefunden'])}
+      <div class="container container--with-top-pad" id="mainContent">
+        <div class="no-results">
+          <div class="no-results__icon">${ICONS.placeholder}</div>
+          <p class="no-results__text">Objekt nicht gefunden.</p>
+        </div>
+      </div>
+    `;
+  }
+
+  const catLabel = getCategoryLabel(f.categoryId) || '';
+  const parentCat = getParentCategory(f.categoryId);
+  const building = BUILDINGS.find(b => b.buildingId === f.buildingId);
+  const floor = FLOORS.find(fl => fl.floorId === f.floorId);
+  const locationParts = [];
+  if (building) locationParts.push(building.name);
+  if (floor) locationParts.push(floor.name);
+  const locationLabel = locationParts.join(', ');
+
+  const bcItems = [['Gebrauchte M\u00f6bel', "navigateTo('circular')"]];
+  if (parentCat) bcItems.push([parentCat.label]);
+  bcItems.push([escapeHtml(f.name)]);
+
+  return `
+    ${renderBreadcrumb(...bcItems)}
     <div class="container container--with-top-pad" id="mainContent">
-      ${renderBreadcrumb(['Arbeitspl\u00e4tze gestalten'])}
+      <div class="detail-toolbar">
+        <button class="btn btn--outline btn--sm detail-toolbar__back" onclick="history.back()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/></svg>
+          Zur\u00fcck
+        </button>
+      </div>
+      <div class="product-detail">
+        <div class="product-detail__image">
+          ${f.photo ? `<img src="https://images.unsplash.com/${f.photo}?w=600&h=450&fit=crop&auto=format&q=80" alt="${escapeHtml(f.name)}" loading="lazy">` : ICONS.placeholder}
+          <span class="badge badge--circular">Gebraucht</span>
+        </div>
+        <div class="product-detail__info">
+          <h1 class="product-detail__title">${escapeHtml(f.name)}</h1>
+          <p class="product-detail__desc">${escapeHtml(f.description)}</p>
+          <div class="product-detail__meta">
+            <span class="product-detail__meta-label">Marke</span>
+            <span class="product-detail__meta-value">${escapeHtml(f.brand)}</span>
+            <span class="product-detail__meta-label">Kategorie</span>
+            <span class="product-detail__meta-value">${catLabel}</span>
+            <span class="product-detail__meta-label">Zustand</span>
+            <span class="product-detail__meta-value">${escapeHtml(f.condition)}</span>
+            <span class="product-detail__meta-label">Inventar-Nr.</span>
+            <span class="product-detail__meta-value">${escapeHtml(f.inventoryNumber)}</span>
+            ${locationLabel ? `<span class="product-detail__meta-label">Standort</span>
+            <span class="product-detail__meta-value">${escapeHtml(locationLabel)}</span>` : ''}
+            ${f.acquisitionDate ? `<span class="product-detail__meta-label">Beschaffung</span>
+            <span class="product-detail__meta-value">${f.acquisitionDate}</span>` : ''}
+          </div>
+          <div class="product-detail__price">${f.currency} ${f.price.toFixed(2)}</div>
+          <div class="product-detail__actions">
+            <button class="btn btn--filled">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              Anfragen
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ---- PLANUNG ----
+function renderPlanning() {
+  return `
+    ${renderBreadcrumb(['Arbeitspl\u00e4tze gestalten'])}
+    <div class="container container--with-top-pad" id="mainContent">
       <div class="page-hero">
         <h1 class="page-hero__title">Arbeitspl\u00e4tze gestalten</h1>
         <p class="page-hero__subtitle">B\u00fcror\u00e4ume nach aktuellen Arbeitsplatzstandards des Bundes planen und einrichten.</p>
       </div>
 
       <div class="tile-grid">
-        <div class="card card--centered card--clickable" onclick="navigateTo('stilwelten')" role="button" tabindex="0">
+        <div class="card card--centered card--clickable" onclick="navigateTo('style-worlds')" role="button" tabindex="0">
           <h3 class="card__title">Stilwelten</h3>
           <p class="card__description">Vordefinierte Einrichtungskonzepte und B\u00fcro-Stile als Planungsgrundlage. Von konzentriertem Einzelarbeiten bis zur offenen Kollaborationszone.</p>
           <div class="card__arrow"><span class="card__arrow-icon">&rarr;</span></div>
         </div>
-        <div class="card card--centered card--clickable" onclick="navigateTo('planungsbeispiele')" role="button" tabindex="0">
+        <div class="card card--centered card--clickable" onclick="navigateTo('examples')" role="button" tabindex="0">
           <h3 class="card__title">Planungsbeispiele</h3>
           <p class="card__description">Realisierte Referenzprojekte aus der Bundesverwaltung. Sehen Sie, wie andere Bundesstellen ihre R\u00e4ume gestaltet haben.</p>
           <div class="card__arrow"><span class="card__arrow-icon">&rarr;</span></div>
@@ -751,72 +860,45 @@ function renderPlanung() {
     <section class="section section--bg-alt">
       <h2 class="section__title">Stilwelten</h2>
       <div class="tile-grid">
-        <div class="card card--clickable" onclick="navigateTo('stilwelten')" role="button" tabindex="0">
+        ${STILWELTEN.slice(0, 3).map(s => `
+        <div class="card card--clickable" onclick="navigateTo('style-worlds')" role="button" tabindex="0">
           <div class="card__image card__image--visual">
-            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=300&fit=crop&auto=format&q=80" alt="Fokus-Arbeitsplatz" loading="lazy">
+            <img src="https://images.unsplash.com/${s.photo}?w=600&h=300&fit=crop&auto=format&q=80" alt="${escapeHtml(s.title)}" loading="lazy">
           </div>
           <div class="card__body">
-            <div class="card__title">Fokus-Arbeitsplatz</div>
-            <div class="card__description">Konzentriertes Arbeiten mit optimaler Akustik und erg\u00e4nzenden Elementen f\u00fcr ungest\u00f6rte Einzelarbeit.</div>
+            <div class="card__title">${escapeHtml(s.title)}</div>
+            <div class="card__description">${escapeHtml(s.description).substring(0, 100)}.</div>
           </div>
           <div class="card__arrow"><span class="card__arrow-icon">&rarr;</span></div>
         </div>
-        <div class="card card--clickable" onclick="navigateTo('stilwelten')" role="button" tabindex="0">
-          <div class="card__image card__image--visual">
-            <img src="https://images.unsplash.com/photo-1497215842964-222b430dc094?w=600&h=300&fit=crop&auto=format&q=80" alt="Kollaborationszone" loading="lazy">
-          </div>
-          <div class="card__body">
-            <div class="card__title">Kollaborationszone</div>
-            <div class="card__description">Offene, flexibel m\u00f6blierte Bereiche f\u00fcr spontane Teamarbeit und geplante Workshops.</div>
-          </div>
-          <div class="card__arrow"><span class="card__arrow-icon">&rarr;</span></div>
-        </div>
-        <div class="card card--clickable" onclick="navigateTo('stilwelten')" role="button" tabindex="0">
-          <div class="card__image card__image--visual">
-            <img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=600&h=300&fit=crop&auto=format&q=80" alt="Lounge &amp; Empfang" loading="lazy">
-          </div>
-          <div class="card__body">
-            <div class="card__title">Lounge &amp; Empfang</div>
-            <div class="card__description">Repr\u00e4sentative R\u00e4ume mit Wohncharakter f\u00fcr Empfangs- und Wartebereiche.</div>
-          </div>
-          <div class="card__arrow"><span class="card__arrow-icon">&rarr;</span></div>
-        </div>
+        `).join('')}
       </div>
       <div class="section-link">
-        <a href="#/stilwelten" class="section-link__a" onclick="navigateTo('stilwelten');return false">Alle Stilwelten anzeigen &rarr;</a>
+        <a href="#/style-worlds" class="section-link__a" onclick="navigateTo('style-worlds');return false">Alle Stilwelten anzeigen &rarr;</a>
       </div>
     </section>
   `;
 }
 
 // ---- STILWELTEN ----
-function renderStilwelten() {
-  const stilwelten = [
-    { title: "Fokus-Arbeitsplatz", desc: "Konzentriertes Arbeiten mit optimaler Akustik und erg\u00e4nzenden Elementen f\u00fcr ungest\u00f6rte Einzelarbeit. Schallabsorbierende Paneele, Sichtschutz und dimmbare Beleuchtung schaffen eine produktive Umgebung.", image: "photo-1497366216548-37526070297c" },
-    { title: "Kollaborationszone", desc: "Offene, flexibel m\u00f6blierte Bereiche f\u00fcr spontane Teamarbeit und geplante Workshops. Mobile Trennw\u00e4nde, Whiteboards und Stehtische f\u00f6rdern den kreativen Austausch.", image: "photo-1497215842964-222b430dc094" },
-    { title: "Lounge & Empfang", desc: "Repr\u00e4sentative R\u00e4ume mit Wohncharakter f\u00fcr Empfangs- und Wartebereiche. Hochwertige Polsterm\u00f6bel, Beistelltische und Pflanzen vermitteln eine einladende Atmosph\u00e4re.", image: "photo-1524758631624-e2822e304c36" },
-    { title: "Konferenz & Meeting", desc: "Professionell ausgestattete Besprechungsr\u00e4ume f\u00fcr formelle Sitzungen. Medientechnik, ergonomische St\u00fchle und modulare Tischsysteme f\u00fcr verschiedene Gruppengr\u00f6ssen.", image: "photo-1462826303086-329426d1aef5" },
-    { title: "Flex-Desk", desc: "Shared-Desk-Arbeitspl\u00e4tze mit pers\u00f6nlichen Schliessfachsystemen. Standardisierte Ausstattung f\u00fcr schnellen Wechsel, optimiert f\u00fcr Desk-Sharing und hybride Arbeitsmodelle.", image: "photo-1593642632559-0c6d3fc62b89" },
-    { title: "Bibliothek & Archiv", desc: "Ruhezonen mit Regalsystemen und Lesepl\u00e4tzen. Akustisch ged\u00e4mmte R\u00e4ume f\u00fcr konzentriertes Lesen und Recherche, kombiniert mit systematischen Ablagem\u00f6glichkeiten.", image: "photo-1507842217343-583bb7270b66" }
-  ];
-
+function renderStyleWorlds() {
   return `
+    ${renderBreadcrumb(['Arbeitspl\u00e4tze gestalten', "navigateTo('planning')"], ['Stilwelten'])}
     <div class="container container--with-top-pad" id="mainContent">
-      ${renderBreadcrumb(['Arbeitspl\u00e4tze gestalten', "navigateTo('planung')"], ['Stilwelten'])}
       <div class="page-hero">
         <h1 class="page-hero__title">Stilwelten</h1>
         <p class="page-hero__subtitle">Vordefinierte Einrichtungskonzepte und B\u00fcro-Stile als Planungsgrundlage. Von konzentriertem Einzelarbeiten bis zur offenen Kollaborationszone.</p>
       </div>
 
       <div class="tile-grid">
-        ${stilwelten.map(s => `
+        ${STILWELTEN.map(s => `
           <div class="card card--clickable">
             <div class="card__image card__image--visual">
-              <img src="https://images.unsplash.com/${s.image}?w=600&h=300&fit=crop&auto=format&q=80" alt="${s.title}" loading="lazy">
+              <img src="https://images.unsplash.com/${s.photo}?w=600&h=300&fit=crop&auto=format&q=80" alt="${escapeHtml(s.title)}" loading="lazy">
             </div>
             <div class="card__body">
-              <div class="card__title">${s.title}</div>
-              <div class="card__description">${s.desc}</div>
+              <div class="card__title">${escapeHtml(s.title)}</div>
+              <div class="card__description">${escapeHtml(s.description)}</div>
             </div>
             <div class="card__arrow">
               <span class="card__arrow-icon">&rarr;</span>
@@ -829,31 +911,24 @@ function renderStilwelten() {
 }
 
 // ---- PLANUNGSBEISPIELE ----
-function renderPlanungsbeispiele() {
-  const beispiele = [
-    { title: "Verwaltungsgeb\u00e4ude Bern", desc: "Neugestaltung von 120 Arbeitspl\u00e4tzen mit Fokus auf Activity-Based Working. Mischung aus Einzelarbeitspl\u00e4tzen, Kollaborationszonen und R\u00fcckzugsbereichen.", image: "photo-1497366216548-37526070297c" },
-    { title: "Bundeshaus S\u00fcd", desc: "Modernisierung der Sitzungszimmer und Empfangsbereiche. Integration von Medientechnik und barrierefreier Ausstattung.", image: "photo-1497215842964-222b430dc094" },
-    { title: "Zollverwaltung Basel", desc: "Umstellung auf Flex-Desk-Konzept f\u00fcr 80 Mitarbeitende. Pers\u00f6nliche Lockers, Buchungssystem und standardisierte Arbeitspl\u00e4tze.", image: "photo-1462826303086-329426d1aef5" },
-    { title: "Agroscope Posieux", desc: "Labornahe B\u00fcroumgebung mit erh\u00f6hten Anforderungen an Sauberkeit und Ergonomie. Spezialm\u00f6bel und h\u00f6henverstellbare Arbeitstische.", image: "photo-1524758631624-e2822e304c36" }
-  ];
-
+function renderExamples() {
   return `
+    ${renderBreadcrumb(['Arbeitspl\u00e4tze gestalten', "navigateTo('planning')"], ['Planungsbeispiele'])}
     <div class="container container--with-top-pad" id="mainContent">
-      ${renderBreadcrumb(['Arbeitspl\u00e4tze gestalten', "navigateTo('planung')"], ['Planungsbeispiele'])}
       <div class="page-hero">
         <h1 class="page-hero__title">Planungsbeispiele</h1>
         <p class="page-hero__subtitle">Realisierte Referenzprojekte aus der Bundesverwaltung. Sehen Sie, wie andere Bundesstellen ihre R\u00e4ume gestaltet haben.</p>
       </div>
 
       <div class="tile-grid">
-        ${beispiele.map(b => `
+        ${PLANUNGSBEISPIELE.map(b => `
           <div class="card card--clickable">
             <div class="card__image card__image--visual">
-              <img src="https://images.unsplash.com/${b.image}?w=600&h=300&fit=crop&auto=format&q=80" alt="${b.title}" loading="lazy">
+              <img src="https://images.unsplash.com/${b.photo}?w=600&h=300&fit=crop&auto=format&q=80" alt="${escapeHtml(b.title)}" loading="lazy">
             </div>
             <div class="card__body">
-              <div class="card__title">${b.title}</div>
-              <div class="card__description">${b.desc}</div>
+              <div class="card__title">${escapeHtml(b.title)}</div>
+              <div class="card__description">${escapeHtml(b.description)}</div>
             </div>
             <div class="card__arrow">
               <span class="card__arrow-icon">&rarr;</span>
@@ -867,47 +942,15 @@ function renderPlanungsbeispiele() {
 
 // ---- CAD-DATEN ----
 function renderCad() {
-  const cadSections = [
-    { id: 'einzelarbeitsplatz', title: 'Einzelarbeitsplatz', files: [
-      { name: 'Grundriss Einzelb\u00fcro Typ A (12 m\u00b2)', format: 'DWG', size: '245.30 kB', date: '15. M\u00e4rz 2025' },
-      { name: 'Grundriss Einzelb\u00fcro Typ B (15 m\u00b2)', format: 'DWG', size: '312.80 kB', date: '15. M\u00e4rz 2025' },
-      { name: 'M\u00f6blierungsvorschlag Einzelb\u00fcro', format: 'PDF', size: '1.85 MB', date: '10. Januar 2025' },
-      { name: 'Massbeschriftung Standardarbeitsplatz', format: 'PDF', size: '420.00 kB', date: '10. Januar 2025' }
-    ]},
-    { id: 'sitzungsraum', title: 'Sitzungsraum', files: [
-      { name: 'Sitzungsraum 4\u20138 Personen', format: 'DWG', size: '198.50 kB', date: '22. Februar 2025' },
-      { name: 'Sitzungsraum 10\u201320 Personen', format: 'DWG', size: '356.20 kB', date: '22. Februar 2025' },
-      { name: 'Medientechnik-Positionen Sitzungsr\u00e4ume', format: 'PDF', size: '890.00 kB', date: '5. Dezember 2024' }
-    ]},
-    { id: 'open-space', title: 'Open Space', files: [
-      { name: 'Grossraumb\u00fcro Rasteranordnung 24 AP', format: 'DWG', size: '512.40 kB', date: '8. November 2024' },
-      { name: 'Zonierungskonzept Open Space', format: 'PDF', size: '2.10 MB', date: '8. November 2024' },
-      { name: 'Verkehrswege und Fluchtwege', format: 'PDF', size: '645.00 kB', date: '1. September 2024' }
-    ]},
-    { id: 'empfang', title: 'Empfang & Lounge', files: [
-      { name: 'Empfangsbereich Standardlayout', format: 'DWG', size: '278.90 kB', date: '14. Juni 2024' },
-      { name: 'Wartezone M\u00f6blierungsvarianten', format: 'PDF', size: '1.42 MB', date: '14. Juni 2024' }
-    ]},
-    { id: 'teekueche', title: 'Teek\u00fcche & Sozialraum', files: [
-      { name: 'K\u00fcchenzeile Typ Standard', format: 'DWG', size: '189.70 kB', date: '3. April 2024' },
-      { name: 'Sozialraum M\u00f6blierung', format: 'DWG', size: '210.30 kB', date: '3. April 2024' },
-      { name: 'Installationsplan Wasser / Strom', format: 'PDF', size: '1.05 MB', date: '20. M\u00e4rz 2024' }
-    ]},
-    { id: '3d-modelle', title: '3D-Modelle', files: [
-      { name: 'BIM-Modell Standardb\u00fcro (IFC 4.0)', format: 'IFC', size: '8.50 MB', date: '28. Januar 2025' },
-      { name: 'Raummodell Einzelb\u00fcro SketchUp', format: 'SKP', size: '4.20 MB', date: '15. Dezember 2024' },
-      { name: 'Raummodell Open Space SketchUp', format: 'SKP', size: '6.80 MB', date: '15. Dezember 2024' },
-      { name: '\u00dcbersicht 3D-Modelle und Formate', format: 'PDF', size: '320.00 kB', date: '1. November 2024' }
-    ]}
-  ];
+  const cadSections = CAD_SECTIONS;
 
   const downloadIcon = `<svg class="download-item__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
 
   const chevronIcon = `<svg class="accordion__arrow" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 12,15 18,9"/></svg>`;
 
   return `
+    ${renderBreadcrumb(['Arbeitspl\u00e4tze gestalten', "navigateTo('planning')"], ['CAD-Daten'])}
     <div class="container container--with-top-pad" id="mainContent">
-      ${renderBreadcrumb(['Arbeitspl\u00e4tze gestalten', "navigateTo('planung')"], ['CAD-Daten'])}
       <div class="page-hero">
         <h1 class="page-hero__title">CAD-Daten</h1>
         <p class="page-hero__subtitle">CAD-Dateien und technische Zeichnungen f\u00fcr die professionelle Raumplanung. F\u00fcr Planer und Architekten.</p>
@@ -940,13 +983,13 @@ function renderCad() {
   `;
 }
 
-// ---- RAUMPLANUNG (Grundriss) ----
+// ---- BELEGUNGSPLANUNG (Grundriss) ----
 
-function rpRenderTreeNode(node, depth) {
+function occRenderTreeNode(node, depth) {
   if (!depth) depth = 0;
   const hasChildren = node.children && node.children.length > 0;
-  const isExpanded = state.rpExpandedIds.has(node.id);
-  const isSelected = state.rpSelectedId === node.id;
+  const isExpanded = state.occExpandedIds.has(node.id);
+  const isSelected = state.occSelectedId === node.id;
   const icon = RP_ICONS[node.type] || '';
   const countLabel = node.count ? ` (${node.count})` : '';
   const chevron = hasChildren
@@ -964,40 +1007,36 @@ function rpRenderTreeNode(node, depth) {
     </div>`;
 
   if (hasChildren && isExpanded) {
-    html += node.children.map(c => rpRenderTreeNode(c, depth + 1)).join('');
+    html += node.children.map(c => occRenderTreeNode(c, depth + 1)).join('');
   }
   return html;
 }
 
-function rpGetTabs(nodeType) {
-  if (nodeType === 'building') return [
-    { id: 'uebersicht', label: '\u00dcbersicht' },
-    { id: 'flaechen', label: 'Geb\u00e4udefl\u00e4chen' },
-    { id: 'dokumente', label: 'Dokumente' }
+function occGetTabs(nodeType) {
+  if (nodeType === 'building' || nodeType === 'floor') return [
+    { id: 'map', label: 'Karte' },
+    { id: 'overview', label: '\u00dcbersicht' },
+    { id: 'metrics', label: 'Bemessungen' },
+    { id: 'equipment', label: 'Ausstattung' }
   ];
-  if (nodeType === 'floor') return [
-    { id: 'uebersicht', label: '\u00dcbersicht' },
-    { id: 'grundriss', label: 'Grundriss' },
-    { id: 'inventar', label: 'Inventar' }
-  ];
-  // default: portfolio view
+  // default: portfolio view (country, kanton, no selection)
   return [
-    { id: 'karte', label: 'Karte' },
-    { id: 'galerie', label: 'Galerie' }
+    { id: 'map', label: 'Karte' },
+    { id: 'gallery', label: 'Galerie' }
   ];
 }
 
-function rpRenderContent(selected) {
-  if (!selected) return rpRenderPortfolio();
+function occRenderContent(selected) {
+  if (!selected) return occRenderPortfolio();
   const { node, path } = selected;
-  if (node.type === 'building') return rpRenderBuilding(node, path);
-  if (node.type === 'floor') return rpRenderFloor(node, path);
-  return rpRenderPortfolio();
+  if (node.type === 'building') return occRenderBuilding(node, path);
+  if (node.type === 'floor') return occRenderFloor(node, path);
+  return occRenderPortfolio();
 }
 
-function rpRenderPortfolio() {
-  const tab = state.rpTab;
-  if (tab === 'galerie') {
+function occRenderPortfolio() {
+  const tab = state.occTab;
+  if (tab === 'gallery') {
     // Collect all buildings
     const buildings = [];
     (function collect(n) {
@@ -1021,25 +1060,18 @@ function rpRenderPortfolio() {
       </div>`;
   }
 
-  // Karte tab (default)
-  return `
-    <div class="rp-map-placeholder">
-      <div class="rp-map-placeholder__inner">
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--color-gray-300)" stroke-width="1">
-          <path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/>
-          <path d="M8 2v16"/>
-          <path d="M16 6v16"/>
-        </svg>
-        <p>Kartenansicht</p>
-        <span class="rp-map-placeholder__sub">Interaktive Karte mit Standorten der Bundesgeb\u00e4ude. W\u00e4hlen Sie ein Geb\u00e4ude in der Baumnavigation oder klicken Sie auf einen Standort.</span>
-      </div>
-    </div>`;
+  // Karte tab (default) — real Mapbox map
+  return `<div id="rp-mapbox" class="rp-mapbox"></div>`;
 }
 
-function rpRenderBuilding(b, path) {
-  const tab = state.rpTab;
+function occRenderBuilding(b, path) {
+  const tab = state.occTab;
 
-  if (tab === 'flaechen') {
+  if (tab === 'map') {
+    return `<div id="rp-mapbox" class="rp-mapbox"></div>`;
+  }
+
+  if (tab === 'metrics') {
     const floors = b.children || [];
     const totalFlaeche = floors.length > 0 ? b.flaeche : '\u2013';
     const totalPlaetze = floors.reduce((s, f) => s + (f.plaetze || 0), 0);
@@ -1058,13 +1090,13 @@ function rpRenderBuilding(b, path) {
       </div>`;
   }
 
-  if (tab === 'dokumente') {
+  if (tab === 'equipment') {
     return `
       <div class="rp-detail">
         <h2 class="rp-detail__title">${escapeHtml(b.label)}</h2>
         <p class="rp-detail__subtitle">${b.address}</p>
-        <div class="rp-detail__section-title">Dokumente</div>
-        <div class="rp-detail__empty">Keine Dokumente vorhanden.</div>
+        <div class="rp-detail__section-title">Ausstattung</div>
+        <div class="rp-detail__empty">Keine Ausstattungsdaten vorhanden.</div>
       </div>`;
   }
 
@@ -1079,17 +1111,6 @@ function rpRenderBuilding(b, path) {
       <div class="rp-detail__media">
         <div class="rp-detail__photo">
           <img src="https://images.unsplash.com/${b.photo}?w=600&h=400&fit=crop&auto=format&q=80" alt="${escapeHtml(b.label)}" loading="lazy">
-        </div>
-        <div class="rp-detail__map-snippet">
-          <div class="rp-map-placeholder rp-map-placeholder--sm">
-            <div class="rp-map-placeholder__inner">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-gray-300)" stroke-width="1.5">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
-                <circle cx="12" cy="10" r="3"/>
-              </svg>
-              <span>Standort</span>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -1133,54 +1154,17 @@ function rpRenderBuilding(b, path) {
     </div>`;
 }
 
-function rpRenderFloor(floor, path) {
+function occRenderFloor(floor, path) {
   const building = path.find(n => n.type === 'building');
-  const tab = state.rpTab;
+  const tab = state.occTab;
   const bLabel = building ? building.label : '';
 
-  if (tab === 'grundriss') {
-    return `
-      <div class="rp-detail">
-        <h2 class="rp-detail__title">${floor.label} \u2013 ${escapeHtml(bLabel)}</h2>
-        <div class="rp-floorplan">
-          <div class="rp-floorplan__placeholder">
-            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="var(--color-gray-300)" stroke-width="0.75">
-              <rect x="1" y="1" width="22" height="22" rx="1"/>
-              <line x1="1" y1="8" x2="12" y2="8"/>
-              <line x1="8" y1="1" x2="8" y2="12"/>
-              <line x1="12" y1="8" x2="12" y2="23"/>
-              <line x1="8" y1="12" x2="23" y2="12"/>
-              <rect x="2" y="2" width="4" height="4" rx="0.5" fill="var(--color-gray-200)" stroke="none"/>
-              <rect x="9" y="2" width="2" height="4" rx="0.5" fill="var(--color-gray-200)" stroke="none"/>
-              <rect x="2" y="9" width="4" height="2" rx="0.5" fill="var(--color-gray-200)" stroke="none"/>
-              <rect x="14" y="14" width="3" height="2" rx="0.5" fill="var(--color-gray-200)" stroke="none"/>
-              <rect x="19" y="14" width="3" height="2" rx="0.5" fill="var(--color-gray-200)" stroke="none"/>
-            </svg>
-            <div class="rp-floorplan__label">Grundrissansicht</div>
-            <p class="rp-floorplan__text">Interaktiver Grundriss mit M\u00f6blierung wird hier angezeigt.<br>Fl\u00e4che: ${floor.flaeche} &middot; ${floor.plaetze} Arbeitspl\u00e4tze &middot; ${floor.raeume} R\u00e4ume</p>
-            <div class="rp-floorplan__actions">
-              <span class="rp-floorplan__toggle rp-floorplan__toggle--active">2D</span>
-              <span class="rp-floorplan__toggle">3D</span>
-            </div>
-          </div>
-        </div>
-      </div>`;
+  if (tab === 'map') {
+    return `<div id="rp-mapbox" class="rp-mapbox"></div>`;
   }
 
-  if (tab === 'inventar') {
-    // Generate mock room data
-    const roomTypes = ['B\u00fcro', 'Sitzungszimmer', 'Korridor', 'Teeküche', 'WC', 'Lager', 'Empfang', 'Open Space'];
-    const rooms = [];
-    for (let i = 1; i <= floor.raeume; i++) {
-      const typeIdx = i <= 2 ? 7 : (i % roomTypes.length);
-      const rm = {
-        nr: `${floor.label.replace(/[^0-9EUG]/g, '') || '0'}${String(i).padStart(2, '0')}`,
-        typ: roomTypes[typeIdx],
-        flaeche: Math.floor(12 + Math.random() * 40),
-        plaetze: typeIdx <= 1 ? Math.floor(2 + Math.random() * 8) : (typeIdx === 7 ? Math.floor(6 + Math.random() * 12) : 0)
-      };
-      rooms.push(rm);
-    }
+  if (tab === 'metrics') {
+    const rooms = floor.rooms || [];
 
     return `
       <div class="rp-detail">
@@ -1190,9 +1174,19 @@ function rpRenderFloor(floor, path) {
         <table class="rp-table">
           <thead><tr><th>Raum</th><th>Typ</th><th>Fl\u00e4che</th><th>Pl\u00e4tze</th></tr></thead>
           <tbody>
-            ${rooms.map(r => `<tr><td>${r.nr}</td><td>${r.typ}</td><td>${r.flaeche} m\u00b2</td><td>${r.plaetze || '\u2013'}</td></tr>`).join('')}
+            ${rooms.map(r => `<tr><td>${escapeHtml(r.nr)}</td><td>${escapeHtml(r.type)}</td><td>${r.area} m\u00b2</td><td>${r.workspaces || '\u2013'}</td></tr>`).join('')}
           </tbody>
         </table>
+      </div>`;
+  }
+
+  if (tab === 'equipment') {
+    return `
+      <div class="rp-detail">
+        <h2 class="rp-detail__title">${floor.label} \u2013 ${escapeHtml(bLabel)}</h2>
+        <p class="rp-detail__subtitle">${floor.flaeche} &middot; ${floor.plaetze} Arbeitspl\u00e4tze &middot; ${floor.raeume} R\u00e4ume</p>
+        <div class="rp-detail__section-title">Ausstattung</div>
+        <div class="rp-detail__empty">Keine Ausstattungsdaten vorhanden.</div>
       </div>`;
   }
 
@@ -1224,29 +1218,41 @@ function rpRenderFloor(floor, path) {
           <div class="rp-detail__field-value">${floor.raeume}</div>
         </div>
       </div>
-
-      <div class="rp-floorplan" style="margin-top:var(--space-xl)">
-        <div class="rp-floorplan__placeholder rp-floorplan__placeholder--compact">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-gray-300)" stroke-width="1">
-            <rect x="1" y="1" width="22" height="22" rx="1"/><line x1="1" y1="8" x2="12" y2="8"/><line x1="8" y1="1" x2="8" y2="12"/><line x1="12" y1="8" x2="12" y2="23"/><line x1="8" y1="12" x2="23" y2="12"/>
-          </svg>
-          <span>Grundriss anzeigen \u2192</span>
-        </div>
-      </div>
     </div>`;
 }
 
-function renderGrundriss() {
-  const selected = state.rpSelectedId ? rpFindNode(state.rpSelectedId) : null;
+function renderOccupancy() {
+  const selected = state.occSelectedId ? occFindNode(state.occSelectedId) : null;
   const nodeType = selected ? selected.node.type : null;
-  const tabs = rpGetTabs(nodeType);
+  const tabs = occGetTabs(nodeType);
 
   // Ensure current tab is valid for this node type
-  if (!tabs.find(t => t.id === state.rpTab)) {
-    state.rpTab = tabs[0].id;
+  if (!tabs.find(t => t.id === state.occTab)) {
+    state.occTab = tabs[0].id;
+  }
+
+  // Build breadcrumb from selected node path (full spatial hierarchy)
+  const bcItems = [['Belegungsplanung', "navigateTo('occupancy')"]];
+  if (selected) {
+    selected.path.forEach(n => {
+      const lbl = n.type === 'building' && n.code ? n.code : n.label;
+      bcItems.push([lbl, `(function(){ state.occSelectedId='${n.id}'; state.occExpandedIds.add('${n.id}'); occUpdateView(); occPushHash(); })()`]);
+    });
+    const selNode = selected.node;
+    const selLbl = selNode.type === 'building' && selNode.code ? selNode.code : selNode.label;
+    bcItems.push([selLbl]);
+  } else {
+    // No selection — Belegungsplanung is the current page (no link)
+    bcItems.length = 0;
+    bcItems.push(['Belegungsplanung']);
   }
 
   return `
+    ${renderBreadcrumb(...bcItems)}
+    <div class="page-hero">
+      <h1 class="page-hero__title">Belegungsplanung</h1>
+      <p class="page-hero__subtitle">Standorte, Geb&auml;ude und Geschosse der Bundesverwaltung verwalten und visualisieren.</p>
+    </div>
     <div class="rp-layout" id="mainContent">
       <aside class="rp-tree" role="tree" aria-label="Standortnavigation">
         <div class="rp-tree__header">
@@ -1256,87 +1262,574 @@ function renderGrundriss() {
           </button>
         </div>
         <div class="rp-tree__body">
-          ${rpRenderTreeNode(LOCATIONS)}
+          ${occRenderTreeNode(LOCATIONS)}
         </div>
       </aside>
       <main class="rp-content">
         <div class="rp-tabs" role="tablist">
-          ${tabs.map(t => `<button class="rp-tabs__tab ${state.rpTab === t.id ? 'rp-tabs__tab--active' : ''}" role="tab" data-tab="${t.id}" aria-selected="${state.rpTab === t.id}">${t.label}</button>`).join('')}
+          ${tabs.map(t => `<button class="rp-tabs__tab ${state.occTab === t.id ? 'rp-tabs__tab--active' : ''}" role="tab" data-tab="${t.id}" aria-selected="${state.occTab === t.id}">${t.label}</button>`).join('')}
         </div>
         <div class="rp-content__body">
-          ${rpRenderContent(selected)}
+          ${occRenderContent(selected)}
         </div>
       </main>
     </div>
   `;
 }
 
-function attachGrundrissEvents() {
-  // Tree item clicks
+let _occMap = null;
+let _searchMarker = null;
+
+function occInitMap() {
+  const container = document.getElementById('rp-mapbox');
+  if (!container) return;
+
+  // Clean up previous map instance
+  if (_searchMarker) { _searchMarker.remove(); _searchMarker = null; }
+  if (_occMap) {
+    _occMap.remove();
+    _occMap = null;
+  }
+
+  mapboxgl.accessToken = 'pk.eyJ1IjoiZGF2aWRyYXNuZXI1IiwiYSI6ImNtMm5yamVkdjA5MDcycXMyZ2I2MHRhamgifQ.m651j7WIX7MyxNh8KIQ1Gg';
+
+  _occMap = new mapboxgl.Map({
+    container: 'rp-mapbox',
+    style: MAP_STYLES[state.occMapStyle] ? MAP_STYLES[state.occMapStyle].url : MAP_STYLES['light-v11'].url,
+    center: [7.9, 47.1],
+    zoom: 7.2
+  });
+
+  // Navigation controls — right, vertically centered via CSS
+  _occMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+  // Home button — zoom to full extent
+  const homeCtrl = {
+    onAdd(map) {
+      const div = document.createElement('div');
+      div.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+      div.innerHTML = '<button class="rp-map-btn rp-map-btn--home" type="button" title="Gesamtansicht" aria-label="Gesamtansicht"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L10 4l7 6.5"/><path d="M5 9v6.5a.5.5 0 00.5.5H8v-4h4v4h2.5a.5.5 0 00.5-.5V9"/></svg></button>';
+      div.querySelector('button').addEventListener('click', () => {
+        map.flyTo({ center: [7.9, 47.1], zoom: 7.2, pitch: 0, bearing: 0 });
+        const btn3d = container.querySelector('.rp-map-btn--3d span');
+        if (btn3d) btn3d.textContent = '3D';
+      });
+      return div;
+    },
+    onRemove() {}
+  };
+  _occMap.addControl(homeCtrl, 'top-right');
+
+  // 2D / 3D toggle
+  const toggle3dCtrl = {
+    onAdd(map) {
+      const div = document.createElement('div');
+      div.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+      div.innerHTML = '<button class="rp-map-btn rp-map-btn--3d" type="button" title="3D-Ansicht umschalten" aria-label="3D-Ansicht umschalten"><span>3D</span></button>';
+      const btn = div.querySelector('button');
+      btn.addEventListener('click', () => {
+        const is3D = map.getPitch() > 0;
+        if (is3D) {
+          map.easeTo({ pitch: 0, bearing: 0, duration: 600 });
+          btn.querySelector('span').textContent = '3D';
+        } else {
+          map.easeTo({ pitch: 60, bearing: -20, duration: 600 });
+          btn.querySelector('span').textContent = '2D';
+        }
+      });
+      return div;
+    },
+    onRemove() {}
+  };
+  _occMap.addControl(toggle3dCtrl, 'top-right');
+
+  // Swisstopo address search overlay — click-extend pattern (like header search)
+  const searchEl = document.createElement('div');
+  searchEl.className = 'rp-map-search';
+  searchEl.innerHTML = `
+    <form class="rp-map-search__form" role="search" aria-label="Adresse suchen">
+      <input class="rp-map-search__input" type="text" placeholder="Adresse suchen\u2026" autocomplete="off">
+      <button class="rp-map-search__btn" type="button" aria-label="Adresse suchen">
+        <span class="rp-map-search__label">Suche</span>
+        <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="17" y2="17"/></svg>
+      </button>
+    </form>
+    <div class="rp-map-search__results"></div>`;
+  container.appendChild(searchEl);
+
+  const searchBtn = searchEl.querySelector('.rp-map-search__btn');
+  const searchInput = searchEl.querySelector('.rp-map-search__input');
+  const searchResults = searchEl.querySelector('.rp-map-search__results');
+
+  searchBtn.addEventListener('click', () => {
+    const isOpen = searchEl.classList.contains('rp-map-search--open');
+    if (isOpen) {
+      searchEl.classList.remove('rp-map-search--open');
+      searchInput.value = '';
+      searchResults.innerHTML = '';
+    } else {
+      searchEl.classList.add('rp-map-search--open');
+      searchInput.focus();
+    }
+  });
+
+  // Close search on Escape
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      searchEl.classList.remove('rp-map-search--open');
+      searchInput.value = '';
+      searchResults.innerHTML = '';
+    }
+  });
+
+  // Close search when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!searchEl.contains(e.target) && searchEl.classList.contains('rp-map-search--open')) {
+      searchEl.classList.remove('rp-map-search--open');
+      searchInput.value = '';
+      searchResults.innerHTML = '';
+    }
+  });
+
+  let _searchDebounce = null;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(_searchDebounce);
+    const q = searchInput.value.trim();
+    if (q.length < 2) { searchResults.innerHTML = ''; return; }
+    _searchDebounce = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://api3.geo.admin.ch/rest/services/ech/SearchServer?searchText=${encodeURIComponent(q)}&type=locations&limit=6&sr=4326`);
+        const data = await res.json();
+        if (!data.results || !data.results.length) {
+          searchResults.innerHTML = '<div class="rp-map-search__empty">Keine Ergebnisse</div>';
+          return;
+        }
+        searchResults.innerHTML = data.results.map((r, i) =>
+          `<button class="rp-map-search__item" data-idx="${i}" type="button">${r.attrs.label.replace(/<[^>]+>/g, '')}</button>`
+        ).join('');
+        searchResults.querySelectorAll('.rp-map-search__item').forEach((btn, i) => {
+          btn.addEventListener('click', () => {
+            const r = data.results[i];
+            const lngLat = [r.attrs.lon, r.attrs.lat];
+            if (_searchMarker) _searchMarker.remove();
+            _searchMarker = new mapboxgl.Marker({ color: '#0066cc' }).setLngLat(lngLat).addTo(_occMap);
+            _occMap.flyTo({ center: lngLat, zoom: 17, speed: 1.4 });
+            searchEl.classList.remove('rp-map-search--open');
+            searchInput.value = '';
+            searchResults.innerHTML = '';
+          });
+        });
+      } catch (e) {
+        searchResults.innerHTML = '<div class="rp-map-search__empty">Fehler bei der Suche</div>';
+      }
+    }, 300);
+  });
+
+  // Scale bar — bottom-left
+  _occMap.addControl(new mapboxgl.ScaleControl({ maxWidth: 200 }), 'bottom-left');
+
+  // Background map style switcher — bottom-right
+  function getStyleThumbnail(styleId, w, h) {
+    return `https://api.mapbox.com/styles/v1/mapbox/${styleId}/static/7.45,46.95,13,0/${w}x${h}@2x?access_token=${mapboxgl.accessToken}&attribution=false&logo=false`;
+  }
+
+  const styleSwitcher = document.createElement('div');
+  styleSwitcher.className = 'rp-style-switcher';
+  styleSwitcher.innerHTML = `
+    <div class="rp-style-switcher__panel" id="rp-style-panel">
+      ${Object.entries(MAP_STYLES).map(([id, s]) => `
+        <button class="rp-style-option${id === state.occMapStyle ? ' rp-style-option--active' : ''}" data-style="${id}" title="${s.name}">
+          <img src="${getStyleThumbnail(id, 70, 50)}" alt="${s.name}">
+          <span>${s.name}</span>
+        </button>`).join('')}
+    </div>
+    <button class="rp-style-switcher__btn" id="rp-style-btn" title="Hintergrund wechseln">
+      <img src="${getStyleThumbnail(state.occMapStyle, 80, 60)}" alt="Aktueller Stil">
+      <span>Hintergrund</span>
+    </button>`;
+  container.appendChild(styleSwitcher);
+
+  const styleBtn = styleSwitcher.querySelector('#rp-style-btn');
+  const stylePanel = styleSwitcher.querySelector('#rp-style-panel');
+
+  styleBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    stylePanel.classList.toggle('rp-style-switcher__panel--show');
+    styleBtn.classList.toggle('rp-style-switcher__btn--active');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!styleSwitcher.contains(e.target)) {
+      stylePanel.classList.remove('rp-style-switcher__panel--show');
+      styleBtn.classList.remove('rp-style-switcher__btn--active');
+    }
+  });
+
+  styleSwitcher.querySelectorAll('.rp-style-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const styleId = opt.dataset.style;
+      if (styleId === state.occMapStyle) return;
+      state.occMapStyle = styleId;
+      // Update active state
+      styleSwitcher.querySelectorAll('.rp-style-option').forEach(o => o.classList.remove('rp-style-option--active'));
+      opt.classList.add('rp-style-option--active');
+      // Update main button thumbnail
+      styleBtn.querySelector('img').src = getStyleThumbnail(styleId, 80, 60);
+      // Change map style
+      _occMap.setStyle(MAP_STYLES[styleId].url);
+      // Persist in URL
+      occPushHash();
+      // Close panel
+      stylePanel.classList.remove('rp-style-switcher__panel--show');
+      styleBtn.classList.remove('rp-style-switcher__btn--active');
+    });
+  });
+
+  // Re-add data layers after style change
+  _occMap.on('style.load', () => {
+    if (!BUILDINGS_GEO) return;
+    if (_occMap.getSource('buildings')) return; // already loaded
+
+    let filteredGeo = BUILDINGS_GEO;
+    const selId = state.occSelectedId;
+    if (selId && selId !== 'ch') {
+      const found = occFindNode(selId);
+      if (found) {
+        const node = found.node;
+        let buildingIds;
+        if (node.type === 'kanton') buildingIds = (node.children || []).map(b => b.id);
+        else if (node.type === 'building') buildingIds = [node.id];
+        else if (node.type === 'floor') {
+          const parentB = found.path.find(n => n.type === 'building');
+          buildingIds = parentB ? [parentB.id] : [];
+        }
+        if (buildingIds && buildingIds.length) {
+          filteredGeo = { type: 'FeatureCollection', features: BUILDINGS_GEO.features.filter(f => buildingIds.includes(f.properties.buildingId)) };
+        }
+      }
+    }
+    _occMap.addSource('buildings', { type: 'geojson', data: filteredGeo });
+    _occMap.addLayer({ id: 'building-points', type: 'circle', source: 'buildings', paint: { 'circle-radius': 8, 'circle-color': '#d73027', 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
+    _occMap.addLayer({ id: 'building-labels', type: 'symbol', source: 'buildings', minzoom: 14, layout: { 'text-field': ['get', 'objectCode'], 'text-size': 12, 'text-anchor': 'bottom', 'text-offset': [0, -1.2], 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'], 'text-allow-overlap': true }, paint: { 'text-color': '#1a1a1a', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 } });
+  });
+
+  _occMap.on('load', () => {
+    if (!BUILDINGS_GEO) return;
+
+    // Determine which buildings to show based on current selection
+    let filteredGeo = BUILDINGS_GEO;
+    const selId = state.occSelectedId;
+    if (selId && selId !== 'ch') {
+      const found = occFindNode(selId);
+      if (found) {
+        const node = found.node;
+        let buildingIds;
+        if (node.type === 'kanton') {
+          // Show all buildings in this site/kanton
+          buildingIds = (node.children || []).map(b => b.id);
+        } else if (node.type === 'building') {
+          buildingIds = [node.id];
+        } else if (node.type === 'floor') {
+          // Show parent building
+          const parentB = found.path.find(n => n.type === 'building');
+          buildingIds = parentB ? [parentB.id] : [];
+        }
+        if (buildingIds && buildingIds.length) {
+          filteredGeo = {
+            type: 'FeatureCollection',
+            features: BUILDINGS_GEO.features.filter(f => buildingIds.includes(f.properties.buildingId))
+          };
+        }
+      }
+    }
+
+    _occMap.addSource('buildings', {
+      type: 'geojson',
+      data: filteredGeo
+    });
+
+    _occMap.addLayer({
+      id: 'building-points',
+      type: 'circle',
+      source: 'buildings',
+      paint: {
+        'circle-radius': 8,
+        'circle-color': '#d73027',
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#ffffff'
+      }
+    });
+
+    _occMap.addLayer({
+      id: 'building-labels',
+      type: 'symbol',
+      source: 'buildings',
+      minzoom: 14,
+      layout: {
+        'text-field': ['get', 'objectCode'],
+        'text-size': 12,
+        'text-anchor': 'bottom',
+        'text-offset': [0, -1.2],
+        'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'],
+        'text-allow-overlap': true
+      },
+      paint: {
+        'text-color': '#1a1a1a',
+        'text-halo-color': '#ffffff',
+        'text-halo-width': 1.5
+      }
+    });
+
+    // Fit map to visible features
+    if (filteredGeo.features.length > 0 && selId && selId !== 'ch') {
+      if (filteredGeo.features.length === 1) {
+        // Single building — fly to it at building zoom level
+        const coords = filteredGeo.features[0].geometry.coordinates;
+        _occMap.jumpTo({ center: coords, zoom: 17 });
+      } else {
+        // Multiple buildings — fit bounds
+        const bounds = new mapboxgl.LngLatBounds();
+        filteredGeo.features.forEach(f => bounds.extend(f.geometry.coordinates));
+        _occMap.fitBounds(bounds, { padding: 80, maxZoom: 15 });
+      }
+    }
+
+    // Click on building marker or label
+    const handleMarkerClick = (e) => {
+      const feature = e.features[0];
+      const buildingId = feature.properties.buildingId;
+      state.occSelectedId = buildingId;
+      const found = occFindNode(buildingId);
+      if (found) {
+        found.path.forEach(n => state.occExpandedIds.add(n.id));
+        const tabs = occGetTabs(found.node.type);
+        state.occTab = tabs[0].id;
+      }
+      occUpdateView();
+      occPushHash();
+    };
+    _occMap.on('click', 'building-points', handleMarkerClick);
+    _occMap.on('click', 'building-labels', handleMarkerClick);
+
+    // Pointer cursor on hover
+    ['building-points', 'building-labels'].forEach(layer => {
+      _occMap.on('mouseenter', layer, () => {
+        _occMap.getCanvas().style.cursor = 'pointer';
+      });
+      _occMap.on('mouseleave', layer, () => {
+        _occMap.getCanvas().style.cursor = '';
+      });
+    });
+
+    // Popup on hover (show building name)
+    const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 12 });
+    const showPopup = (e) => {
+      const f = e.features[0];
+      popup.setLngLat(f.geometry.coordinates)
+        .setHTML(`<strong>${f.properties.name}</strong>`)
+        .addTo(_occMap);
+    };
+    const hidePopup = () => popup.remove();
+    _occMap.on('mouseenter', 'building-points', showPopup);
+    _occMap.on('mouseleave', 'building-points', hidePopup);
+    _occMap.on('mouseenter', 'building-labels', showPopup);
+    _occMap.on('mouseleave', 'building-labels', hidePopup);
+  });
+}
+
+// Incremental update for the occupancy page — avoids full render() which destroys the map
+function occUpdateView() {
+  const selected = state.occSelectedId ? occFindNode(state.occSelectedId) : null;
+  const nodeType = selected ? selected.node.type : null;
+  const tabs = occGetTabs(nodeType);
+  if (!tabs.find(t => t.id === state.occTab)) {
+    state.occTab = tabs[0].id;
+  }
+
+  // Update breadcrumb (full spatial hierarchy)
+  const bcItems = [['Belegungsplanung', "navigateTo('occupancy')"]];
+  if (selected) {
+    selected.path.forEach(n => {
+      const lbl = n.type === 'building' && n.code ? n.code : n.label;
+      bcItems.push([lbl, `(function(){ state.occSelectedId='${n.id}'; state.occExpandedIds.add('${n.id}'); occUpdateView(); occPushHash(); })()`]);
+    });
+    const selNode = selected.node;
+    const selLbl = selNode.type === 'building' && selNode.code ? selNode.code : selNode.label;
+    bcItems.push([selLbl]);
+  } else {
+    bcItems.length = 0;
+    bcItems.push(['Belegungsplanung']);
+  }
+  const bcEl = document.querySelector('.breadcrumb-bar');
+  if (bcEl) bcEl.outerHTML = renderBreadcrumb(...bcItems);
+
+  // Update tree
+  const treeBody = document.querySelector('.rp-tree__body');
+  if (treeBody) treeBody.innerHTML = occRenderTreeNode(LOCATIONS);
+
+  // Update tabs
+  const tablist = document.querySelector('.rp-tabs');
+  if (tablist) {
+    tablist.innerHTML = tabs.map(t =>
+      `<button class="rp-tabs__tab ${state.occTab === t.id ? 'rp-tabs__tab--active' : ''}" role="tab" data-tab="${t.id}" aria-selected="${state.occTab === t.id}">${t.label}</button>`
+    ).join('');
+  }
+
+  // Update content body — but preserve the live map if we're staying on the map tab
+  const contentBody = document.querySelector('.rp-content__body');
+  if (contentBody) {
+    const liveMapContainer = contentBody.querySelector('#rp-mapbox');
+    if (state.occTab === 'map' && liveMapContainer && _occMap && _occMap.getContainer() === liveMapContainer) {
+      // Map is already live in this container — just pan/zoom, don't touch the DOM
+      occUpdateMap();
+    } else {
+      contentBody.innerHTML = occRenderContent(selected);
+      const mapContainer = document.getElementById('rp-mapbox');
+      if (mapContainer) {
+        if (_occMap) { _occMap.remove(); _occMap = null; }
+        occInitMap();
+      } else {
+        if (_occMap) { _occMap.remove(); _occMap = null; }
+      }
+    }
+  }
+
+  // Re-attach events on updated DOM
+  occAttachTreeEvents();
+  occAttachContentEvents();
+}
+
+// Update existing map source/bounds without destroying the map instance
+function occUpdateMap() {
+  if (!_occMap) return;
+  const source = _occMap.getSource('buildings');
+  if (!source) return;
+
+  let filteredGeo = BUILDINGS_GEO;
+  const selId = state.occSelectedId;
+  if (selId && selId !== 'ch') {
+    const found = occFindNode(selId);
+    if (found) {
+      const node = found.node;
+      let buildingIds;
+      if (node.type === 'kanton') {
+        buildingIds = (node.children || []).map(b => b.id);
+      } else if (node.type === 'building') {
+        buildingIds = [node.id];
+      } else if (node.type === 'floor') {
+        const parentB = found.path.find(n => n.type === 'building');
+        buildingIds = parentB ? [parentB.id] : [];
+      }
+      if (buildingIds && buildingIds.length) {
+        filteredGeo = {
+          type: 'FeatureCollection',
+          features: BUILDINGS_GEO.features.filter(f => buildingIds.includes(f.properties.buildingId))
+        };
+      }
+    }
+  }
+
+  source.setData(filteredGeo);
+
+  if (filteredGeo.features.length > 0 && selId && selId !== 'ch') {
+    if (filteredGeo.features.length === 1) {
+      // Single building — fly to it at building zoom level
+      const coords = filteredGeo.features[0].geometry.coordinates;
+      _occMap.flyTo({ center: coords, zoom: 17, speed: 1.4 });
+    } else {
+      // Multiple buildings in kanton — fit bounds
+      const bounds = new mapboxgl.LngLatBounds();
+      filteredGeo.features.forEach(f => bounds.extend(f.geometry.coordinates));
+      _occMap.fitBounds(bounds, { padding: 80, maxZoom: 15 });
+    }
+  } else if (!selId || selId === 'ch') {
+    // Reset to default Switzerland view
+    _occMap.flyTo({ center: [7.9, 47.1], zoom: 7.2 });
+  }
+}
+
+// Attach click handlers to tree items
+function occAttachTreeEvents() {
   document.querySelectorAll('.rp-tree__item').forEach(item => {
     item.addEventListener('click', () => {
       const id = item.dataset.id;
-      const found = rpFindNode(id);
+      const found = occFindNode(id);
       if (!found) return;
 
       const hasChildren = found.node.children && found.node.children.length > 0;
 
-      if (state.rpSelectedId === id && hasChildren) {
-        // Toggle expand if clicking the already-selected node
-        if (state.rpExpandedIds.has(id)) state.rpExpandedIds.delete(id);
-        else state.rpExpandedIds.add(id);
+      if (state.occSelectedId === id && hasChildren) {
+        if (state.occExpandedIds.has(id)) state.occExpandedIds.delete(id);
+        else state.occExpandedIds.add(id);
       } else {
-        // Select and expand
-        state.rpSelectedId = id;
-        if (hasChildren) state.rpExpandedIds.add(id);
-
-        // Reset tab to first tab for the new node type
-        const tabs = rpGetTabs(found.node.type);
-        state.rpTab = tabs[0].id;
+        state.occSelectedId = id;
+        if (hasChildren) state.occExpandedIds.add(id);
+        const tabs = occGetTabs(found.node.type);
+        state.occTab = tabs[0].id;
       }
-      render();
+
+      occUpdateView();
+      occPushHash();
     });
   });
+}
 
-  // Tab clicks
+// Attach click handlers to content area elements (tabs, table rows, gallery cards, etc.)
+function occAttachContentEvents() {
   document.querySelectorAll('.rp-tabs__tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      state.rpTab = tab.dataset.tab;
-      render();
+      state.occTab = tab.dataset.tab;
+      occUpdateView();
+      occPushHash();
     });
   });
 
-  // Table row links (floors in building view)
   document.querySelectorAll('.rp-table__row--link, .rp-gallery__card').forEach(row => {
     row.addEventListener('click', () => {
       const id = row.dataset.select;
       if (!id) return;
-      state.rpSelectedId = id;
-      const found = rpFindNode(id);
+      state.occSelectedId = id;
+      const found = occFindNode(id);
       if (found) {
-        // Expand all ancestors
-        found.path.forEach(n => state.rpExpandedIds.add(n.id));
-        const tabs = rpGetTabs(found.node.type);
-        state.rpTab = tabs[0].id;
+        found.path.forEach(n => state.occExpandedIds.add(n.id));
+        const tabs = occGetTabs(found.node.type);
+        state.occTab = tabs[0].id;
       }
-      render();
+      occUpdateView();
+      occPushHash();
     });
   });
 
-  // Floor plan compact click -> switch to grundriss tab
-  const fpCompact = document.querySelector('.rp-floorplan__placeholder--compact');
-  if (fpCompact) {
-    fpCompact.style.cursor = 'pointer';
-    fpCompact.addEventListener('click', () => {
-      state.rpTab = 'grundriss';
-      render();
-    });
+}
+
+// Push current occupancy state to URL hash
+function occPushHash() {
+  let hash = '#/occupancy';
+  if (state.occSelectedId && state.occSelectedId !== 'ch') {
+    hash += '/' + state.occSelectedId;
+    if (state.occTab && state.occTab !== 'map') {
+      hash += '/' + state.occTab;
+    }
   }
+  // Append map style as query parameter if not default
+  if (state.occMapStyle && state.occMapStyle !== 'light-v11') {
+    hash += (hash.includes('?') ? '&' : '?') + 'bg=' + state.occMapStyle;
+  }
+  history.pushState(null, '', hash);
+}
+
+function attachOccupancyEvents() {
+  // Initialize Mapbox map if container exists
+  occInitMap();
+
+  // Attach event handlers
+  occAttachTreeEvents();
+  occAttachContentEvents();
 }
 
 // ---- CIRCULAR (Gebrauchte Möbel) ----
 function renderCircular() {
-  const products = filterCircularProducts();
+  const items = filterFurnitureItems();
   const catLabel = getCategoryLabel(state.activeCategory);
   const parent = getParentCategory(state.activeCategory);
 
@@ -1349,8 +1842,8 @@ function renderCircular() {
   }
 
   return `
+    ${renderBreadcrumb(...bcItems)}
     <div class="container container--with-top-pad">
-      ${renderBreadcrumb(...bcItems)}
       <div class="page-hero">
         <h1 class="page-hero__title">Gebrauchte M\u00f6bel</h1>
         <p class="page-hero__subtitle">Gebrauchtes Mobiliar wiederverwenden statt entsorgen. Objekte scannen, erfassen und im Angebot verf\u00fcgbarer M\u00f6bel suchen.</p>
@@ -1362,12 +1855,12 @@ function renderCircular() {
           <p class="card__description">Scannen Sie den QR-Code oder geben Sie die Inventar-Nummer eines M\u00f6belst\u00fccks ein, um dessen Status und Verf\u00fcgbarkeit zu pr\u00fcfen.</p>
           <div class="card__arrow"><span class="card__arrow-icon">&rarr;</span></div>
         </div>
-        <div class="card card--centered card--clickable" onclick="navigateTo('erfassen')" role="button" tabindex="0">
+        <div class="card card--centered card--clickable" onclick="navigateTo('register')" role="button" tabindex="0">
           <h3 class="card__title">Neues Objekt erfassen</h3>
           <p class="card__description">Gebrauchtes Mobiliar ins System eintragen und f\u00fcr andere Bundesstellen verf\u00fcgbar machen.</p>
           <div class="card__arrow"><span class="card__arrow-icon">&rarr;</span></div>
         </div>
-        <div class="card card--centered card--clickable" onclick="navigateTo('charta')" role="button" tabindex="0">
+        <div class="card card--centered card--clickable" onclick="navigateTo('charter')" role="button" tabindex="0">
           <h3 class="card__title">Charta kreislauforientiertes Bauen</h3>
           <p class="card__description">Erfahren Sie mehr \u00fcber unsere Strategie f\u00fcr Kreislaufwirtschaft und nachhaltiges Bauen in der Bundesverwaltung.</p>
           <div class="card__arrow"><span class="card__arrow-icon">&rarr;</span></div>
@@ -1394,11 +1887,11 @@ function renderCircular() {
             <option value="price-asc" ${state.sortBy==='price-asc'?'selected':''}>Preis aufsteigend</option>
             <option value="price-desc" ${state.sortBy==='price-desc'?'selected':''}>Preis absteigend</option>
           </select>
-          <span class="toolbar__count">${products.length} Objekt${products.length !== 1 ? 'e' : ''}</span>
+          <span class="toolbar__count">${items.length} Objekt${items.length !== 1 ? 'e' : ''}</span>
         </div>
-        ${products.length ? `
+        ${items.length ? `
           <div class="product-grid" id="productGrid">
-            ${products.map(p => renderProductCard(p)).join('')}
+            ${items.map(f => renderFurnitureCard(f)).join('')}
           </div>
         ` : `
           <div class="no-results">
@@ -1414,8 +1907,8 @@ function renderCircular() {
 // ---- OBJEKT SCANNEN ----
 function renderScan() {
   return `
+    ${renderBreadcrumb(['Gebrauchte M\u00f6bel', "navigateTo('circular')"], ['Objekt scannen'])}
     <div class="container container--with-top-pad" id="mainContent">
-      ${renderBreadcrumb(['Gebrauchte M\u00f6bel', "navigateTo('circular')"], ['Objekt scannen'])}
       <div class="page-hero">
         <h1 class="page-hero__title">Objekt scannen</h1>
         <p class="page-hero__subtitle">Scannen Sie den QR-Code auf dem M\u00f6belst\u00fcck oder geben Sie die Inventar-Nummer manuell ein.</p>
@@ -1440,10 +1933,10 @@ function renderScan() {
 }
 
 // ---- NEUES OBJEKT ERFASSEN ----
-function renderErfassen() {
+function renderRegister() {
   return `
+    ${renderBreadcrumb(['Gebrauchte M\u00f6bel', "navigateTo('circular')"], ['Neues Objekt erfassen'])}
     <div class="container container--with-top-pad" id="mainContent">
-      ${renderBreadcrumb(['Gebrauchte M\u00f6bel', "navigateTo('circular')"], ['Neues Objekt erfassen'])}
       <div class="page-hero">
         <h1 class="page-hero__title">Neues Objekt erfassen</h1>
         <p class="page-hero__subtitle">Erfassen Sie gebrauchtes Mobiliar und machen Sie es f\u00fcr andere Bundesstellen verf\u00fcgbar.</p>
@@ -1499,11 +1992,10 @@ function renderErfassen() {
 }
 
 // ---- CHARTA KREISLAUFORIENTIERTES BAUEN ----
-function renderCharta() {
+function renderCharter() {
   return `
+    ${renderBreadcrumb(['Gebrauchte M\u00f6bel', "navigateTo('circular')"], ['Charta kreislauforientiertes Bauen'])}
     <div class="container container--with-top-pad" id="mainContent">
-      ${renderBreadcrumb(['Gebrauchte M\u00f6bel', "navigateTo('circular')"], ['Charta kreislauforientiertes Bauen'])}
-
       <div class="placeholder-area">
         <div class="placeholder-area__icon">
           <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg>
@@ -1555,9 +2047,8 @@ function renderSearch() {
   const topCategories = CATEGORIES.filter(c => c.id !== 'alle');
 
   return `
+    ${renderBreadcrumb(['Suchergebnisse'])}
     <div class="container container--with-top-pad" id="mainContent">
-      ${renderBreadcrumb(['Suchergebnisse'])}
-
       <h1 class="search-page__title">Suchergebnisse</h1>
 
       <div class="search-page__input-wrapper">
@@ -1713,8 +2204,8 @@ function renderCart() {
   const step3Active = state.cartStep === 3;
 
   return `
+    ${renderBreadcrumb(['Produktkatalog', "navigateTo('shop')"], ['Warenkorb'])}
     <div class="container container--with-top-pad" id="mainContent">
-      ${renderBreadcrumb(['Produktkatalog', "navigateTo('shop')"], ['Warenkorb'])}
       <div class="detail-toolbar">
         <button class="btn btn--outline btn--sm detail-toolbar__back" onclick="history.back()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/></svg>
@@ -2056,7 +2547,12 @@ document.getElementById('burgerBtn').addEventListener('click', () => {
 // HASH ROUTING
 // ===================================================================
 function handleHash() {
-  const hash = location.hash.replace('#/', '').split('/');
+  const rawHash = location.hash.replace('#/', '');
+  // Extract query params from hash (e.g. ?bg=satellite-v9)
+  const qIdx = rawHash.indexOf('?');
+  const hashPath = qIdx >= 0 ? rawHash.substring(0, qIdx) : rawHash;
+  const hashParams = qIdx >= 0 ? new URLSearchParams(rawHash.substring(qIdx + 1)) : null;
+  const hash = hashPath.split('/');
   const page = hash[0] || 'shop';
   const sub = hash[1] || null;
 
@@ -2064,7 +2560,37 @@ function handleHash() {
     state.page = 'product';
     state.productId = Number(sub);
     state.subPage = null;
-  } else if (['home', 'shop', 'planung', 'grundriss', 'circular', 'scan', 'erfassen', 'charta', 'stilwelten', 'planungsbeispiele', 'cad', 'cart', 'search'].includes(page)) {
+  } else if (page === 'item' && sub) {
+    state.page = 'item';
+    state.subPage = sub;
+    state.productId = null;
+  } else if (page === 'occupancy') {
+    state.page = 'occupancy';
+    state.subPage = sub;
+    state.productId = null;
+    const tabFromUrl = hash[2] || null;
+    // Restore tree selection from URL
+    if (sub) {
+      state.occSelectedId = sub;
+      const found = occFindNode(sub);
+      if (found) {
+        found.path.forEach(n => state.occExpandedIds.add(n.id));
+        const tabs = occGetTabs(found.node.type);
+        // Restore tab from URL or default to first
+        if (tabFromUrl && tabs.find(t => t.id === tabFromUrl)) {
+          state.occTab = tabFromUrl;
+        } else if (!tabs.find(t => t.id === state.occTab)) {
+          state.occTab = tabs[0].id;
+        }
+      }
+    } else {
+      state.occSelectedId = null;
+      state.occTab = 'map';
+    }
+    // Restore map background style from URL
+    const bgFromUrl = hashParams ? hashParams.get('bg') : null;
+    state.occMapStyle = (bgFromUrl && MAP_STYLES[bgFromUrl]) ? bgFromUrl : state.occMapStyle;
+  } else if (['home', 'shop', 'planning', 'circular', 'scan', 'register', 'charter', 'style-worlds', 'examples', 'cad', 'cart', 'search'].includes(page)) {
     state.page = page;
     state.subPage = sub;
     state.productId = null;

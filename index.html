@@ -7,6 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/style.css">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
 </head>
 <body>
 
@@ -36,15 +38,8 @@
       Alle Schweizer Bundesbeh&ouml;rden
       <svg viewBox="0 0 12 12" aria-hidden="true"><polyline points="2,4 6,8 10,4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
+    <span class="top-bar__prototype-notice">Prototyp &ndash; nur zur Demonstration</span>
     <div class="top-bar__actions">
-      <a href="#" class="top-bar__a11y-link" aria-label="Leichte Sprache">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-        <span>Leichte Sprache</span>
-      </a>
-      <a href="#" class="top-bar__a11y-link" aria-label="Geb&auml;rdensprache">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 11v-1a2 2 0 114 0v1"/><path d="M11 10V6a2 2 0 114 0v5"/><path d="M15 8V6a2 2 0 114 0v6a8 8 0 01-8 8 8 8 0 01-4-1"/></svg>
-        <span>Geb&auml;rdensprache</span>
-      </a>
       <button class="top-bar__action" aria-label="Anmelden">
         Anmelden
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -108,8 +103,8 @@
     <div class="main-navigation" id="appNav">
       <a class="main-navigation__link" data-nav="shop" href="#/shop">Produktkatalog</a>
       <a class="main-navigation__link" data-nav="circular" href="#/circular">Gebrauchte M&ouml;bel</a>
-      <a class="main-navigation__link" data-nav="planung" href="#/planung">Arbeitspl&auml;tze gestalten</a>
-      <a class="main-navigation__link" data-nav="grundriss" href="#/grundriss">Raumplanung</a>
+      <a class="main-navigation__link" data-nav="planning" href="#/planning">Arbeitspl&auml;tze gestalten</a>
+      <a class="main-navigation__link" data-nav="occupancy" href="#/occupancy">Belegungsplanung</a>
     </div>
   </nav>
 </header>
@@ -123,6 +118,7 @@
       <div class="footer-information__col">
         <h3 class="footer-information__heading">&Uuml;ber uns</h3>
         <p class="footer-information__text">Das Bundesamt f&uuml;r Bauten und Logistik BBL stellt die Arbeitsplatzinfrastruktur der Bundesverwaltung bereit. &Uuml;ber diese Plattform k&ouml;nnen Mobiliar bestellt, R&auml;ume geplant und gebrauchte M&ouml;bel f&uuml;r die Wiederverwendung erfasst werden.</p>
+        <p class="footer-information__prototype-notice">Diese Anwendung ist ein Prototyp. Darstellung, Funktionalit&auml;t und Inhalte dienen ausschliesslich der Demonstration.</p>
       </div>
       <div class="footer-information__col">
         <h3 class="footer-information__heading">Bleiben Sie informiert</h3>

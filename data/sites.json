@@ -1,0 +1,50 @@
+[
+  {
+    "siteId": "be",
+    "name": "Bern",
+    "nameLong": "Verwaltungsstandort Bern",
+    "type": "Verwaltungsstandort",
+    "address": {
+      "city": "Bern",
+      "canton": "BE",
+      "country": "CH"
+    },
+    "coords": [46.9480, 7.4474]
+  },
+  {
+    "siteId": "zh",
+    "name": "Zürich",
+    "nameLong": "Verwaltungsstandort Zürich",
+    "type": "Verwaltungsstandort",
+    "address": {
+      "city": "Zürich",
+      "canton": "ZH",
+      "country": "CH"
+    },
+    "coords": [47.3667, 8.5500]
+  },
+  {
+    "siteId": "bs",
+    "name": "Basel",
+    "nameLong": "Verwaltungsstandort Basel",
+    "type": "Verwaltungsstandort",
+    "address": {
+      "city": "Basel",
+      "canton": "BS",
+      "country": "CH"
+    },
+    "coords": [47.5596, 7.5886]
+  },
+  {
+    "siteId": "lu",
+    "name": "Luzern",
+    "nameLong": "Verwaltungsstandort Luzern",
+    "type": "Verwaltungsstandort",
+    "address": {
+      "city": "Luzern",
+      "canton": "LU",
+      "country": "CH"
+    },
+    "coords": [47.0502, 8.3093]
+  }
+]

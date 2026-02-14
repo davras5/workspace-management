@@ -20,6 +20,7 @@
   /* ── INTERACTIVE (project-specific blue) ─────────────────────────────── */
   --color-primary:             #006699;
   --color-primary-hover:       #005580;
+  --color-primary-50:          #E8F0FE;
   --color-primary-light:       #E6F0F7;
   --color-primary-dark:        #004B6E;
 
@@ -68,7 +69,7 @@
   /* ── BORDERS ──────────────────────────────────────────────────────────── */
   --color-border:              #E5E7EB;          /* gray-200 */
   --color-border-light:        #F3F4F6;          /* gray-100 */
-  --color-border-input:        #9CA3AF;          /* gray-400 */
+  --color-border-input:        #6B7280;          /* text-500 / gray-500 – per input.postcss */
 
   /* ── FOCUS ────────────────────────────────────────────────────────────── */
   --color-focus:               #8655F6;          /* Official purple-500 */
@@ -82,6 +83,18 @@
   --color-error-light:         #FEE2E2;          /* red-100 */
   --color-info:                #0F6B75;          /* teal-700 */
   --color-info-light:          #CCFBF1;          /* teal-100 */
+
+  /* ── BADGE COLORS (CD Bund badge palette) ─────────────────────────── */
+  --color-badge-green-bg:      #D1FAE5;          /* green-100 */
+  --color-badge-green-text:    #065F46;          /* green-800 */
+  --color-badge-blue-bg:       #DBEAFE;          /* blue-100 */
+  --color-badge-blue-text:     #1E40AF;          /* blue-800 */
+  --color-badge-red-bg:        #FEE2E2;          /* red-100 */
+  --color-badge-red-text:      #991B1B;          /* red-800 */
+  --color-badge-yellow-bg:     #FEF3C7;          /* yellow-100 */
+  --color-badge-yellow-text:   #92400E;          /* yellow-800 */
+  --color-badge-orange-bg:     #FFEDD5;          /* orange-100 */
+  --color-badge-orange-text:   #9A3412;          /* orange-800 */
 
   /* ── CIRCULAR-HUB (project-specific) ──────────────────────────────────── */
   --color-circular:            #047857;
@@ -140,7 +153,7 @@
   --container-max-width:       1544px;           /* Official 2xl */
   --container-padding:         1rem;             /* px-4 (16px) */
   --grid-gutter:               1.25rem;          /* gap-5 (20px) */
-  --sidebar-width:             260px;
+  --sidebar-width:             280px;
 
   /* Section vertical padding */
   --section-py:                3.5rem;           /* py-14 (56px) */
@@ -156,7 +169,7 @@
 
   /* Component heights */
   --topbar-height:             46px;
-  --nav-height:                64px;
+  --nav-height:                56px;              /* main-navigation base */
 
   /* ── BREAKPOINTS (reference) ──────────────────────────────────────────── */
   /* xs: 480px | sm: 640px | md: 768px | lg: 1024px |
@@ -235,6 +248,7 @@
     --section-py:              5rem;             /* py-20 (80px) */
     --section-py-half:         2.5rem;           /* py-10 (40px) */
     --top-header-py:           1.5rem;           /* py-6 (24px) */
+    --nav-height:              64px;             /* main-navigation lg */
   }
 }
 
@@ -289,6 +303,7 @@
     --section-py:              8rem;             /* py-32 (128px) */
     --section-py-half:         4rem;             /* py-16 (64px) */
     --top-header-py:           2.5rem;           /* py-10 (40px) */
+    --nav-height:              80px;             /* main-navigation 3xl */
 
     /* Buttons */
     --btn-min-h:               52px;

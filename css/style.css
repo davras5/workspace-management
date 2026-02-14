@@ -9,7 +9,11 @@
   --_center-pad:        max(var(--container-padding), calc(50% - var(--container-max-width) / 2));
 }
 
-html { font-size: 16px; scroll-behavior: smooth; }
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  word-spacing: 0.0625em;
+}
 
 body {
   font-family: var(--font-family);
@@ -19,10 +23,30 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Global focus-visible (CD Bund: ring-2 ring-purple-500) */
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-focus);
+  z-index: 10;
 }
 
 a { color: var(--color-primary); text-decoration: none; }
 a:hover { text-decoration: underline; }
+
+/* Links inside main content area (CD Bund link.postcss pattern) */
+#app a:not(.btn):not(.card):not(.card *):not([class*="nav"]):not([class*="footer"]):not([class*="breadcrumb"]) {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  overflow-wrap: break-word;
+}
+#app a:not(.btn):not(.card):not(.card *):not([class*="nav"]):not([class*="footer"]):not([class*="breadcrumb"]):hover {
+  color: var(--color-primary-dark);
+}
 
 button {
   font-family: inherit;
@@ -56,14 +80,16 @@ ul, ol { list-style: none; }
   background: var(--color-bg-default);
 }
 
-/* ===== ROW 1: TOP BAR (dark) ===== */
+/* ===== ROW 1: TOP BAR (dark) – CD Bund top-bar.postcss ===== */
 .top-bar {
-  background: var(--color-surface-dark);
+  background: var(--color-secondary-600);
   padding: 0 var(--_center-pad);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: var(--topbar-height);
+  min-height: var(--topbar-height);
+  font-size: var(--text-body-sm);
+  color: var(--color-text-inverse);
 }
 
 .top-bar__authorities {
@@ -73,6 +99,8 @@ ul, ol { list-style: none; }
   color: var(--color-text-inverse);
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-normal);
+  min-height: 2.75rem;
+  transition: color var(--transition-fast);
 }
 
 .top-bar__authorities svg {
@@ -80,7 +108,10 @@ ul, ol { list-style: none; }
   opacity: 0.7;
 }
 
-.top-bar__authorities:hover { text-decoration: underline; }
+.top-bar__authorities:hover {
+  color: var(--color-gray-300);
+  text-decoration: none;
+}
 
 .top-bar__lang {
   display: flex;
@@ -90,6 +121,9 @@ ul, ol { list-style: none; }
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-semibold);
   padding: var(--space-sm) 0;
+  min-height: 2.75rem;
+  cursor: pointer;
+  transition: color var(--transition-fast);
 }
 
 .top-bar__lang svg {
@@ -97,7 +131,10 @@ ul, ol { list-style: none; }
   opacity: 0.7;
 }
 
-.top-bar__lang:hover { text-decoration: underline; }
+.top-bar__lang:hover {
+  color: var(--color-gray-300);
+  text-decoration: none;
+}
 
 .top-bar__actions {
   display: flex;
@@ -112,6 +149,8 @@ ul, ol { list-style: none; }
   color: var(--color-text-inverse);
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-normal);
+  min-height: 2.75rem;
+  transition: color var(--transition-fast);
 }
 
 .top-bar__action svg {
@@ -119,16 +158,28 @@ ul, ol { list-style: none; }
   opacity: 0.85;
 }
 
-.top-bar__action:hover { text-decoration: underline; }
+.top-bar__action:hover {
+  color: var(--color-gray-300);
+  text-decoration: none;
+}
 
-/* ===== ROW 2: TOP HEADER ===== */
+.top-bar__prototype-notice {
+  color: #ff4444;
+  font-size: var(--text-body-sm);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* ===== ROW 2: TOP HEADER – CD Bund top-header.postcss ===== */
 .top-header {
   background: var(--color-bg-default);
   border-bottom: 1px solid var(--color-gray-200);
   padding: var(--top-header-py) var(--_center-pad);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  font-size: var(--text-body-sm);
+  position: relative;
 }
 
 .top-header__left {
@@ -142,30 +193,34 @@ ul, ol { list-style: none; }
 
 .top-header__left:hover { text-decoration: none; }
 
+/* Logo flag: 30×33px base → 32×34 (lg) → 40×44 (3xl) – per logo.postcss */
 .top-header__coat-of-arms {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 33px;
   flex-shrink: 0;
 }
 
+/* Name SVG: hidden below xl, 174×50px → 244×70px (3xl) – per logo.postcss */
 .top-header__text {
-  height: 49px;
-  width: auto;
+  display: none;
+  height: 50px;
+  width: 174px;
 }
 
+/* Separator: 1px wide, responsive heights – per logo.postcss */
 .top-header__divider {
   width: 1px;
-  height: 60px;
+  height: 40px;
   background: var(--color-gray-300);
   flex-shrink: 0;
   margin: 0 var(--space-sm);
 }
 
 .top-header__dept {
-  font-size: var(--text-body);
+  font-size: var(--text-body-sm);
   font-weight: var(--font-weight-bold);
   color: var(--color-gray-800);
-  line-height: var(--line-height-tight);
+  line-height: var(--line-height-snug);
 }
 
 .top-header__dept-sub {
@@ -186,8 +241,39 @@ ul, ol { list-style: none; }
 }
 
 @media (min-width: 1280px) {
+  .top-header__coat-of-arms {
+    width: 32px;
+    height: 34px;
+  }
+  .top-header__text {
+    display: block;
+    height: 50px;
+    width: 174px;
+  }
+  .top-header__divider {
+    height: 56px;
+    margin: 0 var(--space-md);
+  }
   .top-header__actions {
     gap: 0.5rem;
+  }
+}
+
+@media (min-width: 1920px) {
+  .top-header {
+    font-size: var(--text-body);
+  }
+  .top-header__coat-of-arms {
+    width: 40px;
+    height: 44px;
+  }
+  .top-header__text {
+    height: 70px;
+    width: 244px;
+  }
+  .top-header__divider {
+    height: 70px;
+    margin: 0 var(--space-lg);
   }
 }
 
@@ -201,34 +287,40 @@ ul, ol { list-style: none; }
   transition: color var(--transition-fast);
 }
 
-.top-header__action:hover { color: var(--color-primary); }
-.top-header__action:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.top-header__action:hover { color: var(--color-primary); text-decoration: none; }
 .top-header__action svg { width: 20px; height: 20px; }
 
-/* ===== ROW 3: NAVBAR ===== */
+/* ===== ROW 3: NAVBAR – CD Bund main-navigation.postcss ===== */
 .navbar {
   background: var(--color-bg-default);
   border-bottom: 1px solid var(--color-gray-200);
   padding: 0 var(--_center-pad);
   display: flex;
   align-items: center;
-  height: 72px;
+  height: var(--nav-height);
   position: relative;
 }
 
 .main-navigation {
-  display: flex;
+  display: none;
   align-items: center;
-  gap: var(--space-2xl);
+  gap: 2rem;
   height: 100%;
   list-style: none;
+}
+
+/* Desktop: visible at lg+ per main-navigation.postcss */
+@media (min-width: 1024px) {
+  .main-navigation {
+    display: flex;
+  }
 }
 
 .main-navigation__link {
   height: 100%;
   display: flex;
   align-items: center;
-  font-size: var(--text-h4);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-normal);
   color: var(--color-gray-800);
   text-decoration: none;
@@ -237,27 +329,30 @@ ul, ol { list-style: none; }
   position: relative;
 }
 
-.main-navigation__link:hover { color: var(--color-accent); text-decoration: none; }
-.main-navigation__link:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.main-navigation__link:hover {
+  color: var(--color-accent);
+  text-decoration: none;
+}
 
 .main-navigation__link--active {
   color: var(--color-gray-800);
   font-weight: var(--font-weight-normal);
 }
 
+/* Active indicator: 3px bar, bg-primary-500 per main-navigation.postcss */
 .main-navigation__link--active::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 4px;
-  background: var(--color-accent);
+  height: 3px;
+  background: var(--color-accent-light);
 }
 
-/* ===== BURGER (mobile) ===== */
+/* ===== BURGER (mobile) – visible below lg ===== */
 .burger {
-  display: none;
+  display: flex;
   width: 40px; height: 40px;
   align-items: center;
   justify-content: center;
@@ -266,6 +361,9 @@ ul, ol { list-style: none; }
 }
 .burger:hover { background: var(--color-gray-100); }
 .burger svg { width: 24px; height: 24px; }
+@media (min-width: 1024px) {
+  .burger { display: none; }
+}
 
 /* ===== LAYOUT ===== */
 .app-layout {
@@ -275,19 +373,28 @@ ul, ol { list-style: none; }
 
 .sidebar {
   width: var(--sidebar-width);
-  border-right: 1px solid var(--color-gray-200);
-  padding: var(--space-md) 0;
   flex-shrink: 0;
+  border-right: 1px solid var(--color-gray-200);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
   background: var(--color-bg-default);
 }
 
 .sidebar__title {
-  font-size: var(--text-body-xs);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-bold);
-  letter-spacing: var(--letter-spacing-wide);
-  text-transform: uppercase;
-  color: var(--color-gray-500);
-  padding: 0 var(--space-md) 12px;
+  color: var(--color-gray-800);
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--color-gray-200);
+  flex-shrink: 0;
+}
+
+/* Category tree body – matches .rp-tree__body pattern */
+.cat-tree {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-xs) 0;
 }
 
 /* ===== CATEGORY TREE ===== */
@@ -299,12 +406,18 @@ ul, ol { list-style: none; }
   transition: background var(--transition-fast);
   gap: var(--space-sm);
   font-size: var(--text-body-sm);
-  color: var(--color-gray-600);
+  color: var(--color-gray-700);
   user-select: none;
 }
 
-.cat-item__row:hover { background: var(--color-gray-100); }
-.cat-item__row:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.cat-item__row:hover { background: var(--color-gray-50); }
+.cat-item__row:focus-visible { box-shadow: inset 0 0 0 2px var(--color-focus); outline: none; }
+
+.cat-item__row--active {
+  background: var(--color-primary-50);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
 
 .cat-item__radio {
   width: var(--space-md); height: var(--space-md);
@@ -365,25 +478,45 @@ ul, ol { list-style: none; }
   min-width: 0;
 }
 
-/* ===== BREADCRUMB ===== */
+/* ===== BREADCRUMB – CD Bund breadcrumb.postcss ===== */
+
+/* Full-width bar wrapper: aligns breadcrumb content with header via --_center-pad */
+.breadcrumb-bar {
+  padding: 0 var(--_center-pad);
+}
+
+/* py-2 (xl: py-3), hidden below lg, text-sm, text text-500 per breadcrumb.postcss */
 .breadcrumb {
-  display: flex;
+  display: none;
   align-items: center;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
   font-size: var(--text-body-sm);
   color: var(--color-gray-500);
-  margin-bottom: var(--space-md);
   padding: 0.5rem 0;
   flex-wrap: wrap;
 }
 
-.breadcrumb a {
-  color: var(--color-gray-600);
-  text-decoration: none;
-  transition: color var(--transition-fast);
+/* Visible at lg+ per breadcrumb.postcss */
+@media (min-width: 1024px) {
+  .breadcrumb {
+    display: flex;
+  }
+}
+@media (min-width: 1280px) {
+  .breadcrumb {
+    padding: 0.75rem 0;
+  }
 }
 
-.breadcrumb a:hover { color: var(--color-primary); text-decoration: none; }
+/* Items: flex, hover primary-600, leading-tight, transition per breadcrumb.postcss */
+.breadcrumb a {
+  color: var(--color-gray-500);
+  text-decoration: none !important;
+  transition: color var(--transition-fast);
+  line-height: var(--line-height-tight);
+}
+
+.breadcrumb a:hover { color: var(--color-accent); text-decoration: none !important; }
 
 .breadcrumb__sep {
   color: var(--color-gray-400);
@@ -414,43 +547,50 @@ ul, ol { list-style: none; }
 
 .search__field {
   flex: 1;
-  padding: 9px 14px;
-  border: 1px solid var(--color-gray-300);
+  padding: 0.625rem 1rem;
+  border: 1px solid var(--color-border-input);
   border-right: none;
-  border-radius: var(--radius) 0 0 var(--radius);
+  border-radius: var(--radius-xs) 0 0 var(--radius-xs);
   font-size: var(--text-body-sm);
   font-family: inherit;
   outline: none;
   transition: border-color var(--transition-fast);
+  box-shadow: var(--shadow);
+  min-height: 44px;
+  background: var(--color-bg-default);
 }
 
 .search__field:focus { border-color: var(--color-primary); }
-.search__field::placeholder { color: var(--color-gray-400); }
+.search__field::placeholder { color: var(--color-secondary-400); }
 
 .search__button {
-  padding: 9px 14px;
+  padding: 0.625rem 1rem;
   background: var(--color-primary);
   color: var(--color-text-inverse);
-  border-radius: 0 var(--radius) var(--radius) 0;
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background var(--transition-fast);
+  min-height: 44px;
 }
 
 .search__button:hover { background: var(--color-primary-dark); }
 
+/* Select – CD Bund input/select pattern */
 .select {
-  padding: 9px var(--space-xl) 9px 12px;
-  border: 1px solid var(--color-gray-300);
-  border-radius: var(--radius);
+  padding: 0.625rem 2rem 0.625rem 1rem;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-xs);
   font-size: var(--text-body-sm);
   font-family: inherit;
   color: var(--color-gray-600);
-  background: var(--color-bg-default) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpolyline points='2,4 6,8 10,4' fill='none' stroke='%239E9E9E' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 10px center;
+  background: var(--color-bg-default) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpolyline points='2,4 6,8 10,4' fill='none' stroke='%236B7280' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 10px center;
   appearance: none;
   cursor: pointer;
   outline: none;
+  box-shadow: var(--shadow);
+  min-height: 44px;
 }
 
 .select:focus { border-color: var(--color-primary); }
@@ -471,40 +611,40 @@ ul, ol { list-style: none; }
 
 .product-grid--spaced { margin-bottom: var(--space-lg); }
 
-/* ===== CARD (CD Bund unified) ===== */
+/* ===== CARD – CD Bund card.postcss ===== */
 .card {
-  border: 1px solid var(--color-gray-200);
   overflow: hidden;
   background: var(--color-bg-default);
   display: flex;
   flex-direction: column;
+  height: 100%;
   transition: box-shadow var(--transition-normal);
+  container-type: inline-size;
 }
 
+/* card--default: shadow-lg per card.postcss */
+.card--default,
+.card {
+  box-shadow: var(--shadow-lg);
+}
+
+/* card--clickable: hover shadow-2xl, title → primary-700, border overlay via ::after */
 .card--clickable {
   cursor: pointer;
+  position: relative;
 }
 
 .card--clickable:hover {
   box-shadow: var(--shadow-2xl);
 }
 
-.card--clickable:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
-}
-
 .card--product {
   cursor: pointer;
+  position: relative;
 }
 
 .card--product:hover {
   box-shadow: var(--shadow-2xl);
-}
-
-.card--product:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
 }
 
 .card__arrow {
@@ -525,9 +665,10 @@ ul, ol { list-style: none; }
   transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
 }
 
+/* card title hover: primary-700 per card.postcss */
 .card--clickable:hover .card__title,
 .card--product:hover .card__title {
-  color: var(--color-accent);
+  color: var(--color-accent-dark);
 }
 
 /* Card image */
@@ -562,49 +703,92 @@ ul, ol { list-style: none; }
   padding-bottom: 56.25%;
 }
 
-/* ===== BADGE ===== */
+/* ===== BADGE – CD Bund badge.postcss ===== */
 .badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  padding: 3px 10px;
-  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  padding: 0.219em 1em;
+  border-radius: var(--radius-full);
   font-size: var(--text-body-xs);
   font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
   letter-spacing: var(--letter-spacing-normal);
 }
 
+/* Positioned badge (on card images) */
+.card__image .badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+/* Badge color variants per badge.postcss */
 .badge--new {
   background: var(--color-primary-light);
   color: var(--color-primary);
 }
 
 .badge--circular {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--color-secondary-100);
+  color: var(--color-gray-800);
 }
 
-/* Card body */
+.badge--green {
+  background: var(--color-badge-green-bg);
+  color: var(--color-badge-green-text);
+}
+
+.badge--blue {
+  background: var(--color-badge-blue-bg);
+  color: var(--color-badge-blue-text);
+}
+
+.badge--red {
+  background: var(--color-badge-red-bg);
+  color: var(--color-badge-red-text);
+}
+
+.badge--yellow {
+  background: var(--color-badge-yellow-bg);
+  color: var(--color-badge-yellow-text);
+}
+
+.badge--orange {
+  background: var(--color-badge-orange-bg);
+  color: var(--color-badge-orange-text);
+}
+
+/* Card body: px-6 py-10, space-y-4 per card.postcss */
 .card__body {
   padding: 2.5rem 1.5rem;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
+/* Card title: text-lg scale, font-bold, leading-snug per card.postcss */
 .card__title {
   font-size: var(--text-h4);
   font-weight: var(--font-weight-bold);
   color: var(--color-gray-800);
   line-height: var(--line-height-snug);
   margin-bottom: 0;
+  transition: color var(--transition-fast);
 }
 
+/* Card description: break-words, line-clamp-6 per card.postcss */
 .card__description {
   font-size: var(--text-body);
   color: var(--color-gray-500);
   line-height: var(--line-height-normal);
   flex: 1;
-  margin-top: 1rem;
+  margin-top: 0;
+  overflow-wrap: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .card--centered .card__arrow {
@@ -619,12 +803,13 @@ ul, ol { list-style: none; }
   margin-top: var(--space-sm);
 }
 
-/* Card footer */
+/* Card footer: flex, items-center, justify-between, px-6 pb-6 per card.postcss */
 .card__footer {
   padding: 0 1.5rem 1.5rem;
   display: flex;
   gap: var(--space-sm);
   align-items: center;
+  justify-content: space-between;
 }
 
 .card__brand {
@@ -650,7 +835,7 @@ ul, ol { list-style: none; }
   margin-top: 10px;
 }
 
-/* ===== BUTTONS ===== */
+/* ===== BUTTONS – CD Bund btn.postcss ===== */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -659,37 +844,115 @@ ul, ol { list-style: none; }
   min-height: var(--btn-min-h);
   border-radius: var(--radius-sm);
   font-size: var(--text-body);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-normal);
   line-height: var(--line-height-tight);
-  transition: background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
   gap: 6px;
   text-decoration: none;
+  cursor: pointer;
+  overflow-wrap: anywhere;
 }
 
 .btn:hover { text-decoration: none; }
-.btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.btn:focus-visible { box-shadow: 0 0 0 2px var(--color-focus); outline: none; }
 
-.btn--filled { background: var(--color-primary); color: var(--color-text-inverse); }
-.btn--filled:hover { background: var(--color-primary-dark); }
+.btn svg {
+  width: 1.4em;
+  flex-shrink: 0;
+  stroke: currentColor;
+  transition: transform var(--transition-fast);
+}
 
-.btn--outline { border: 1px solid var(--color-gray-300); color: var(--color-gray-600); background: var(--color-bg-default); }
-.btn--outline:hover { border-color: var(--color-primary); color: var(--color-primary); }
+/* btn--outline: border/text primary-600 (accent) – per btn.postcss */
+.btn--outline {
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+  background: transparent;
+}
+.btn--outline:hover {
+  border-color: var(--color-accent-dark);
+  color: var(--color-accent-dark);
+}
 
+/* btn--filled: bg secondary-500, text white, font-bold – per btn.postcss */
+.btn--filled {
+  background: var(--color-secondary-500);
+  color: var(--color-text-inverse);
+  border: 1px solid var(--color-secondary-500);
+  font-weight: var(--font-weight-bold);
+}
+.btn--filled:hover {
+  color: var(--color-secondary-100);
+}
+
+/* btn--bare: px-2, text secondary-800, hover primary-600 – per btn.postcss */
+.btn--bare {
+  color: var(--color-secondary-800);
+  padding: 0 0.5rem;
+  background: transparent;
+}
+.btn--bare:hover {
+  color: var(--color-accent);
+  background: transparent;
+}
+
+/* btn--link: pr-2 pl-0, text primary-600, hover primary-700 – per btn.postcss */
+.btn--link {
+  background: none;
+  color: var(--color-primary);
+  padding: 0 0.5rem 0 0;
+  font-weight: var(--font-weight-normal);
+  text-decoration: none;
+  gap: var(--space-xs);
+}
+.btn--link:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+/* btn--secondary: kept for project compat */
+.btn--secondary {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+.btn--secondary:hover {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+/* Size variants – per btn.postcss */
 .btn--sm { padding: 0 1rem; min-height: var(--btn-sm-min-h); font-size: var(--text-body-sm); }
-
-.btn--bare { color: var(--color-primary); padding: 0 0.5rem; }
-.btn--bare:hover { background: var(--color-primary-light); }
-
-.btn--secondary { background: var(--color-primary-light); color: var(--color-primary); border: 1px solid var(--color-primary); }
-.btn--secondary:hover { background: var(--color-primary); color: var(--color-text-inverse); }
-
-.btn--link { background: none; color: var(--color-primary); padding: 0; font-weight: var(--font-weight-normal); text-decoration: underline; gap: var(--space-xs); }
-.btn--link:hover { color: var(--color-primary-dark); }
-
 .btn--lg { padding: 0 1rem; min-height: var(--btn-lg-min-h); font-size: var(--text-h4); }
 
-.btn--negative { border: 1px solid rgba(255,255,255,0.5); color: var(--color-text-inverse); background: transparent; }
-.btn--negative:hover { background: rgba(255,255,255,0.15); border-color: var(--color-text-inverse); }
+/* btn--negative: outline on dark bg – per btn.postcss (outline-negative) */
+.btn--negative {
+  border: 1px solid rgba(255,255,255,0.5);
+  color: var(--color-text-inverse);
+  background: transparent;
+}
+.btn--negative:hover {
+  background: rgba(255,255,255,0.15);
+  border-color: var(--color-text-inverse);
+}
+
+/* Disabled buttons – per btn.postcss */
+.btn:disabled,
+.btn[disabled] {
+  color: var(--color-secondary-300);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.btn--outline:disabled,
+.btn--outline[disabled] {
+  border-color: var(--color-secondary-200);
+  background: var(--color-secondary-200);
+}
+.btn--filled:disabled,
+.btn--filled[disabled] {
+  background: var(--color-secondary-200);
+  border-color: var(--color-secondary-200);
+}
 
 /* ===== DETAIL TOOLBAR (CD Bund) ===== */
 .detail-toolbar {
@@ -797,10 +1060,20 @@ ul, ol { list-style: none; }
 
 .product-detail__actions { display: flex; gap: 12px; }
 
-/* ===== PAGE SECTIONS ===== */
+/* ===== PAGE SECTIONS – CD Bund container.postcss ===== */
+/* Width: 100%, centered, overflow-x clip, responsive padding per container.postcss */
 .container {
-  padding: 0 var(--_center-pad);
+  width: 100%;
+  margin: 0 auto;
+  max-width: var(--container-max-width);
+  padding: 0 var(--container-padding);
   padding-bottom: var(--section-py);
+  overflow-x: clip;
+}
+
+/* Container spacing: container + container per container.postcss */
+.container + .container {
+  padding-top: var(--section-py);
 }
 
 .container--with-top-pad {
@@ -847,13 +1120,14 @@ ul, ol { list-style: none; }
   grid-template-columns: repeat(3, 1fr);
 }
 
-/* ===== ACCORDION (CD Bund) ===== */
+/* ===== ACCORDION – CD Bund accordion.postcss ===== */
 .accordion {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
+/* Items: border-top secondary-200, last-child also border-bottom */
 .accordion__item {
   border-top: 1px solid var(--color-secondary-200);
 }
@@ -862,12 +1136,13 @@ ul, ol { list-style: none; }
   border-bottom: 1px solid var(--color-secondary-200);
 }
 
+/* Button: flex, full width, px-2 py-3 (2xl: px-3 py-5), font-bold, hover primary-500 */
 .accordion__button {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: var(--space-lg) 0;
+  padding: 0.75rem 0.5rem;
   background: none;
   border: none;
   cursor: pointer;
@@ -878,7 +1153,7 @@ ul, ol { list-style: none; }
 }
 
 .accordion__button:hover {
-  color: var(--color-primary-500);
+  color: var(--color-accent-light);
 }
 
 .accordion__title {
@@ -888,45 +1163,66 @@ ul, ol { list-style: none; }
   color: inherit;
 }
 
+/* Arrow: ml-auto, transition transform, active rotate 180 */
 .accordion__arrow {
   flex-shrink: 0;
-  transition: transform 0.2s ease;
+  margin-left: auto;
+  transition: transform 0.3s ease;
 }
 
 .accordion__button.active .accordion__arrow {
   transform: rotate(180deg);
 }
 
+/* Drawer: max-h-0, overflow hidden, transition 0.3s ease-out */
 .accordion__drawer {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s ease-out;
 }
 
-.accordion__content {
-  padding: 0 0 var(--space-xl) 0;
+/* Active drawer: max-h-fit */
+.accordion__drawer.active {
+  max-height: fit-content;
 }
 
-/* ===== DOWNLOAD ITEMS ===== */
+.accordion__content {
+  padding: 0 0.5rem var(--space-xl) 0.5rem;
+}
+
+@media (min-width: 1544px) {
+  .accordion__button {
+    padding: 1.25rem 0.75rem;
+  }
+  .accordion__content {
+    padding: 0 0.75rem var(--space-xl) 0.75rem;
+  }
+}
+
+/* ===== DOWNLOAD ITEMS – CD Bund download-item.postcss ===== */
 .download-item {
   display: flex;
   align-items: flex-start;
   gap: var(--space-md);
-  padding: var(--space-lg) 0;
+  width: 100%;
+  padding: 1rem 0;
   text-decoration: none;
   color: inherit;
+  border-bottom: 1px solid var(--color-secondary-200);
 }
 
-.download-item + .download-item {
-  border-top: 1px solid var(--color-gray-200);
+.download-item:last-child {
+  border-bottom: none;
 }
 
+/* Icon: text primary-600, responsive sizes per download-item.postcss */
 .download-item__icon {
   flex-shrink: 0;
-  color: var(--color-primary-600);
+  color: var(--color-accent);
   margin-top: 2px;
 }
 
+/* Title: font-bold, hover primary-600 transition per download-item.postcss */
 .download-item__name {
   font-weight: var(--font-weight-bold);
   color: var(--color-secondary-600);
@@ -935,13 +1231,13 @@ ul, ol { list-style: none; }
 }
 
 .download-item:hover .download-item__name {
-  color: var(--color-primary-500);
+  color: var(--color-accent);
 }
 
 .download-item__meta {
   font-size: var(--text-body-sm);
   color: var(--color-gray-500);
-  margin-top: var(--space-2xs);
+  margin-top: 2px;
 }
 
 /* ===== PLACEHOLDER AREA ===== */
@@ -969,13 +1265,14 @@ ul, ol { list-style: none; }
 
 .placeholder-area__text { font-size: var(--text-body-sm); line-height: var(--line-height-relaxed); }
 
-/* ===== SECTION TITLE ===== */
+/* ===== SECTION TITLE – CD Bund section.postcss: bold, text-2xl scale, pb-10 ===== */
 .section__title {
   font-size: var(--text-h2);
   font-weight: var(--font-weight-bold);
   color: var(--color-gray-900);
   margin: 0;
   padding-bottom: 2.5rem;
+  line-height: var(--line-height-snug);
 }
 
 .section-link {
@@ -1047,15 +1344,19 @@ ul, ol { list-style: none; }
 
 .scan-area__input {
   flex: 1;
-  padding: 9px 12px;
-  border: 1px solid var(--color-gray-300);
-  border-radius: var(--radius);
+  padding: 0.625rem 1rem;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-xs);
   font-size: var(--text-body-sm);
   font-family: inherit;
   outline: none;
+  box-shadow: var(--shadow);
+  min-height: 44px;
+  background: var(--color-bg-default);
 }
 
 .scan-area__input:focus { border-color: var(--color-primary); }
+.scan-area__input::placeholder { color: var(--color-secondary-400); }
 
 /* ===== NEW OBJECT FORM ===== */
 .form-card {
@@ -1089,17 +1390,31 @@ ul, ol { list-style: none; }
   letter-spacing: var(--letter-spacing-tight);
 }
 
+/* Form inputs – CD Bund input.postcss: border text-500, shadow, radius-xs, min-h 44px */
 .form-input, .form-select, .form-textarea {
-  padding: 9px 12px;
-  border: 1px solid var(--color-gray-300);
-  border-radius: var(--radius);
+  width: 100%;
+  padding: 0.625rem 1rem;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-xs);
   font-size: var(--text-body-sm);
   font-family: inherit;
   outline: none;
   transition: border-color var(--transition-fast);
+  box-shadow: var(--shadow);
+  background: var(--color-bg-default);
+  min-height: 44px;
 }
 
 .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--color-primary); }
+.form-input::placeholder, .form-textarea::placeholder { color: var(--color-secondary-400); }
+
+/* Disabled input state per input.postcss */
+.form-input:disabled, .form-select:disabled, .form-textarea:disabled {
+  background: var(--color-gray-50);
+  color: var(--color-gray-400);
+  border-color: var(--color-gray-300);
+  cursor: not-allowed;
+}
 
 .form-textarea { resize: vertical; min-height: 80px; }
 
@@ -1131,23 +1446,32 @@ ul, ol { list-style: none; }
   to { opacity: 1; }
 }
 
-/* ===== FOOTER ===== */
+/* ===== FOOTER – CD Bund footer.postcss ===== */
 .app-footer {
-  color: var(--color-text-on-dark);
+  color: var(--color-text-inverse);
 }
 
-/* Footer information section (3-column) */
+/* Footer information: flex-col (mobile) → 3-col grid (lg) → 4-col (xl), container-py */
 .footer-information {
   background: var(--color-surface-dark);
   padding: var(--section-py) var(--_center-pad);
 }
 
 .footer-information__inner {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 4rem;
+  display: flex;
+  flex-direction: column;
 }
 
+/* Entry sections: mb-16 (lg: mb-0) per footer.postcss */
+.footer-information__col {
+  margin-bottom: 4rem;
+  color: var(--color-text-inverse);
+}
+.footer-information__col:last-child {
+  margin-bottom: 0;
+}
+
+/* Title: text-xl scale, mb-6 (lg: mb-10) per footer.postcss */
 .footer-information__heading {
   font-size: var(--text-h3);
   font-weight: var(--font-weight-bold);
@@ -1159,13 +1483,26 @@ ul, ol { list-style: none; }
   font-size: var(--text-body-sm);
   line-height: var(--line-height-relaxed);
   color: var(--color-gray-300);
+  margin-bottom: 0.75rem;
+}
+.footer-information__text:last-child {
+  margin-bottom: 0;
 }
 
+.footer-information__prototype-notice {
+  font-size: var(--text-body-sm);
+  line-height: var(--line-height-relaxed);
+  color: #ff4444;
+  font-weight: 700;
+  margin-top: 0.5rem;
+}
+
+/* Social links: mr-5, stroke-width 0.1px per footer.postcss */
 .footer-information__social {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-md) var(--space-lg);
-  margin-bottom: var(--space-lg);
+  margin-bottom: 1.5rem;
+  margin-top: -0.5rem;
 }
 
 .footer-information__social-link {
@@ -1175,10 +1512,19 @@ ul, ol { list-style: none; }
   color: var(--color-text-inverse);
   text-decoration: none;
   font-size: var(--text-body-sm);
+  padding: 0.5rem 0;
+  margin-right: 1.25rem;
+  cursor: pointer;
+  transition: color var(--transition-fast);
 }
 
 .footer-information__social-link:hover {
-  color: var(--color-secondary-100);
+  color: var(--color-gray-300);
+  text-decoration: none;
+}
+
+.footer-information__social-link svg {
+  stroke-width: 0.1px;
 }
 
 .footer-information__newsletter {
@@ -1196,35 +1542,40 @@ ul, ol { list-style: none; }
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* Link list: full width, flex justify-between, py-4 px-2, border-b secondary-300, hover bg-secondary-700 per footer.postcss */
 .footer-information__list {
   list-style: none;
   padding: 0;
   margin: 0;
-}
-
-.footer-information__list li {
-  border-bottom: 1px solid var(--color-secondary-300);
+  margin-top: -1rem;
 }
 
 .footer-information__list li a {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-sm) 0;
+  width: 100%;
+  padding: 1rem 0.5rem;
   color: var(--color-text-inverse);
   text-decoration: none;
   font-size: var(--text-body-sm);
+  border-bottom: 1px solid var(--color-secondary-300);
+  transition: background var(--transition-fast), color var(--transition-fast);
+  cursor: pointer;
 }
 
 .footer-information__list li a:hover {
-  color: var(--color-secondary-100);
+  background: var(--color-secondary-700);
+  color: var(--color-text-inverse);
+  text-decoration: none;
 }
 
 .footer-information__list li a span {
   font-size: var(--text-body);
+  height: 1.5rem;
 }
 
-/* Footer bottom bar (copyright + links) */
+/* Footer navigation row: flex, py-3, space-x-2 (sm: space-x-4), text-xs per footer.postcss */
 .app-footer__bottom {
   background: var(--color-surface-darker);
   padding: 0.75rem var(--_center-pad);
@@ -1233,23 +1584,61 @@ ul, ol { list-style: none; }
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 0.5rem;
+  color: var(--color-text-inverse);
 }
 
 .app-footer__links {
   display: flex;
-  gap: var(--space-lg);
+  gap: 0.5rem;
 }
 
+/* Links: white text, hover/focus text-300 per footer.postcss */
 .app-footer__links a {
-  color: var(--color-text-on-dark);
-  font-size: var(--text-body-sm);
+  color: var(--color-text-inverse);
+  font-size: var(--text-body-xs);
+  text-decoration: none;
+  padding: 0.5rem 0;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.app-footer__links a:hover {
+  color: var(--color-gray-300);
   text-decoration: none;
 }
 
-.app-footer__links a:hover { color: var(--color-text-inverse); text-decoration: none; }
+/* Responsive footer grid per footer.postcss */
+@media (min-width: 640px) {
+  .app-footer__links {
+    gap: 1rem;
+  }
+}
 
-/* ===== SECTION WRAPPER ===== */
+@media (min-width: 1024px) {
+  .footer-information__inner {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4rem;
+  }
+  .footer-information__col {
+    margin-bottom: 0;
+  }
+  .footer-information__heading {
+    margin-bottom: 2.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .footer-information__inner {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ===== SECTION WRAPPER – CD Bund section.postcss ===== */
+/* Section padding: py-14 (56px) base, py-20 (80px) at lg, py-32 (128px) at 3xl */
 .section {
   padding: var(--section-py) var(--_center-pad);
 }
@@ -1258,12 +1647,19 @@ ul, ol { list-style: none; }
   background: var(--color-bg-alt);
 }
 
-/* ===== HERO (home page) ===== */
+/* Consecutive same-background sections: only bottom padding per section.postcss */
+.section + .section:not(.section--bg-alt),
+.section--bg-alt + .section--bg-alt {
+  padding-top: 0;
+}
+
+/* ===== HERO – CD Bund hero.postcss ===== */
 .hero {
   display: flex;
   align-items: center;
   gap: var(--grid-gutter);
-  padding: 3rem var(--_center-pad) var(--section-py);
+  padding: 3rem var(--_center-pad);
+  padding-bottom: var(--section-py);
 }
 
 .hero__content {
@@ -1282,6 +1678,7 @@ ul, ol { list-style: none; }
   display: block;
 }
 
+/* Title: text-3xl scale, font-bold, leading-tight per hero.postcss */
 .hero__title {
   font-size: var(--text-display);
   font-weight: var(--font-weight-bold);
@@ -1290,6 +1687,7 @@ ul, ol { list-style: none; }
   line-height: var(--line-height-tight);
 }
 
+/* Description: text-lg scale, leading-snug per hero.postcss */
 .hero__description {
   font-size: var(--text-h4);
   color: var(--color-text-secondary);
@@ -1298,9 +1696,10 @@ ul, ol { list-style: none; }
   max-width: 520px;
 }
 
+/* CTA buttons: mr-4/5/6, mb-4/5/6 responsive per hero.postcss */
 .hero__cta {
   display: flex;
-  gap: var(--space-md);
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
@@ -1319,6 +1718,16 @@ ul, ol { list-style: none; }
   flex: 1;
 }
 
+/* card--flat: py-4 (lg:6, 2xl:8), px-1, bg transparent, border-b secondary-200 per card.postcss */
+.card--flat {
+  box-shadow: none;
+  background: transparent;
+  padding: 1rem 0.25rem;
+  border-bottom: 1px solid var(--color-secondary-200);
+  border-radius: 0;
+}
+
+/* card--highlight: offset bg with ::before, secondary-300 bg per card.postcss */
 .card--highlight {
   border-top: 5px solid var(--color-accent);
 }
@@ -1327,9 +1736,11 @@ ul, ol { list-style: none; }
   border-top: 5px solid var(--color-primary);
 }
 
-/* ===== LANGUAGE SWITCHER ===== */
+/* ===== LANGUAGE SWITCHER – CD Bund language-switcher.postcss ===== */
 .language-switcher {
   position: relative;
+  display: flex;
+  cursor: pointer;
 }
 
 .language-switcher__dropdown {
@@ -1339,7 +1750,7 @@ ul, ol { list-style: none; }
   right: 0;
   background: var(--color-bg-default);
   border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-2xl);
   min-width: 160px;
   z-index: var(--z-dropdown);
   padding: var(--space-xs) 0;
@@ -1356,7 +1767,8 @@ ul, ol { list-style: none; }
   text-align: left;
   font-size: var(--text-body-sm);
   color: var(--color-text-primary);
-  transition: background var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast);
+  cursor: pointer;
 }
 
 .language-switcher__option:hover {
@@ -1365,13 +1777,21 @@ ul, ol { list-style: none; }
 
 .language-switcher__option--active {
   font-weight: var(--font-weight-semibold);
-  color: var(--color-primary);
+  color: var(--color-accent);
+  border-left: 2px solid var(--color-accent);
 }
 
-/* ===== META NAVIGATION ===== */
+/* ===== META NAVIGATION – CD Bund meta-navigation.postcss ===== */
 .top-header__meta-nav {
-  display: flex;
+  display: none;
   margin-bottom: 0.75rem;
+}
+
+/* Visible at lg+ */
+@media (min-width: 1024px) {
+  .top-header__meta-nav {
+    display: flex;
+  }
 }
 
 @media (min-width: 1280px) {
@@ -1384,12 +1804,13 @@ ul, ol { list-style: none; }
   font-size: var(--text-body-sm);
   color: var(--color-text-secondary);
   text-decoration: none;
-  padding: 0 0.75rem;
+  padding: 0.25rem 0.75rem;
+  transition: color var(--transition-fast);
 }
 
 .top-header__meta-link:hover {
-  color: var(--color-primary);
-  text-decoration: underline;
+  color: var(--color-accent);
+  text-decoration: none;
 }
 
 /* ===== ACCESSIBILITY LINKS (top bar) ===== */
@@ -1397,13 +1818,16 @@ ul, ol { list-style: none; }
   display: flex;
   align-items: center;
   gap: 4px;
-  color: var(--color-text-on-dark);
+  color: var(--color-text-inverse);
   font-size: var(--text-body-xs);
   text-decoration: none;
+  min-height: 2.75rem;
+  transition: color var(--transition-fast);
 }
 
 .top-bar__a11y-link:hover {
-  color: var(--color-text-inverse);
+  color: var(--color-gray-300);
+  text-decoration: none;
 }
 
 .top-bar__a11y-link svg {
@@ -1412,29 +1836,34 @@ ul, ol { list-style: none; }
   opacity: 0.7;
 }
 
-/* ===== BACK TO TOP ===== */
+/* ===== BACK TO TOP – CD Bund back-to-top-btn.postcss ===== */
+/* Sizes: 44px (lg:48px, xl:64px), rounded-sm, shadow-lg, hover shadow-xl */
 .back-to-top-btn {
   position: fixed;
   bottom: var(--space-xl);
   right: var(--space-xl);
   width: 44px;
   height: 44px;
-  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
   background: var(--color-bg-default);
-  color: var(--color-accent);
+  color: var(--color-secondary-500);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: var(--z-sticky);
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--transition-normal), background var(--transition-fast), color var(--transition-fast);
-  box-shadow: var(--shadow-md);
+  transition: opacity var(--transition-normal), background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  border: none;
 }
 
 .back-to-top-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 50%;
+  height: 50%;
+  stroke-width: 0.3px;
+  fill: currentColor;
 }
 
 .back-to-top-btn--visible {
@@ -1443,16 +1872,27 @@ ul, ol { list-style: none; }
 }
 
 .back-to-top-btn:hover {
-  background: var(--color-accent);
+  box-shadow: var(--shadow-xl);
+  background: var(--color-secondary-500);
   color: var(--color-text-inverse);
 }
 
-.back-to-top-btn:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
+/* Responsive sizes per back-to-top-btn.postcss */
+@media (min-width: 1024px) {
+  .back-to-top-btn {
+    width: 48px;
+    height: 48px;
+  }
+}
+@media (min-width: 1280px) {
+  .back-to-top-btn {
+    width: 64px;
+    height: 64px;
+  }
 }
 
-/* ===== NOTIFICATION/COOKIE BANNER ===== */
+/* ===== NOTIFICATION/COOKIE BANNER – CD Bund notification-banner.postcss ===== */
+/* Fixed variant: fixed z-50, bottom-0, full width, border-top white, shadow-2xl per notification-banner.postcss */
 .notification-banner {
   position: fixed;
   bottom: 0;
@@ -1461,9 +1901,17 @@ ul, ol { list-style: none; }
   z-index: var(--z-modal);
   background: var(--color-surface-dark);
   color: var(--color-text-inverse);
-  padding: var(--space-md) var(--_center-pad);
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
+  padding: 1rem var(--_center-pad);
+  border-top: 1px solid var(--color-text-inverse);
+  box-shadow: var(--shadow-2xl);
   animation: slideUp var(--transition-normal) ease;
+}
+
+@media (min-width: 640px) {
+  .notification-banner { padding: 2rem var(--_center-pad); }
+}
+@media (min-width: 1024px) {
+  .notification-banner { padding: 2.5rem var(--_center-pad); }
 }
 
 @keyframes slideUp {
@@ -1475,13 +1923,23 @@ ul, ol { list-style: none; }
   display: none;
 }
 
+/* Wrapper: lg: flex nowrap items-end justify-between per notification-banner.postcss */
 .notification-banner__wrapper {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   gap: var(--space-lg);
 }
 
+@media (min-width: 1024px) {
+  .notification-banner__wrapper {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+/* Text: text-sm scale per notification-banner.postcss */
 .notification-banner__text {
   font-size: var(--text-body-sm);
   line-height: var(--line-height-normal);
@@ -1493,10 +1951,20 @@ ul, ol { list-style: none; }
   text-decoration: underline;
 }
 
+/* Buttons: mt-4 (sm:8, lg:0), ml-6 (lg), whitespace-nowrap per notification-banner.postcss */
 .notification-banner__actions {
   display: flex;
   gap: var(--space-sm);
   flex-shrink: 0;
+  margin-top: 1rem;
+  white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+  .notification-banner__actions { margin-top: 2rem; }
+}
+@media (min-width: 1024px) {
+  .notification-banner__actions { margin-top: 0; margin-left: 1.5rem; }
 }
 
 .notification-banner .btn--outline {
@@ -1575,12 +2043,14 @@ ul, ol { list-style: none; }
 }
 
 .header-search__btn:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--color-focus);
+  outline: none;
 }
 
-/* Hide focus-visible outline on button when form has focus border */
+/* When open, the form wrapper shows the focus ring – suppress inner element rings */
+.header-search--open .header-search__input:focus-visible,
 .header-search--open .header-search__btn:focus-visible {
+  box-shadow: none;
   outline: none;
 }
 
@@ -1611,27 +2081,30 @@ ul, ol { list-style: none; }
 
 .search-page__input {
   flex: 1;
-  padding: 12px var(--space-md);
-  border: 2px solid var(--color-gray-300);
+  padding: 0.625rem var(--space-md);
+  border: 2px solid var(--color-border-input);
   border-right: none;
-  border-radius: var(--radius) 0 0 var(--radius);
+  border-radius: var(--radius-xs) 0 0 var(--radius-xs);
   font-size: var(--text-body);
   font-family: inherit;
   outline: none;
   min-height: 48px;
   transition: border-color var(--transition-fast);
+  box-shadow: var(--shadow);
+  background: var(--color-bg-default);
 }
 
 .search-page__input:focus {
   border-color: var(--color-focus);
 }
+.search-page__input::placeholder { color: var(--color-secondary-400); }
 
 .search-page__submit {
   padding: 0 var(--space-lg);
   background: var(--color-bg-default);
-  border: 2px solid var(--color-gray-300);
+  border: 2px solid var(--color-border-input);
   border-left: none;
-  border-radius: 0 var(--radius) var(--radius) 0;
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
   color: var(--color-gray-500);
   cursor: pointer;
   display: flex;
@@ -1912,13 +2385,15 @@ ul, ol { list-style: none; }
 
 .cart-item__qty-input {
   width: 60px;
-  padding: 6px 8px;
-  border: 1px solid var(--color-gray-300);
-  border-radius: var(--radius-sm);
+  padding: 0.625rem 0.5rem;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-xs);
   font-size: var(--text-body-sm);
   font-family: inherit;
   text-align: center;
   outline: none;
+  box-shadow: var(--shadow);
+  min-height: 44px;
 }
 
 .cart-item__qty-input:focus {
@@ -1991,16 +2466,17 @@ ul, ol { list-style: none; }
 
 /* ===== RAUMPLANUNG (Grundriss) ===== */
 
-/* Main layout: tree sidebar + content */
+/* Main layout: tree sidebar + content, aligned with header via --_center-pad */
 .rp-layout {
   display: flex;
   min-height: calc(100vh - 200px);
-  border-top: 1px solid var(--color-gray-200);
+  padding-left: var(--_center-pad);
+  padding-right: var(--_center-pad);
 }
 
 /* ---- Tree sidebar ---- */
 .rp-tree {
-  width: 280px;
+  width: var(--sidebar-width);
   flex-shrink: 0;
   border-right: 1px solid var(--color-gray-200);
   display: flex;
@@ -2064,7 +2540,7 @@ ul, ol { list-style: none; }
 }
 
 .rp-tree__item--selected {
-  background: var(--color-primary-50, #e8f0fe);
+  background: var(--color-primary-50);
   color: var(--color-primary);
   font-weight: var(--font-weight-semibold);
 }
@@ -2108,37 +2584,57 @@ ul, ol { list-style: none; }
   flex-direction: column;
 }
 
-/* ---- Tabs ---- */
+/* ---- Tabs – CD Bund tab.postcss ---- */
 .rp-tabs {
   display: flex;
   border-bottom: 1px solid var(--color-gray-200);
   flex-shrink: 0;
   padding: 0 var(--space-lg);
   background: var(--color-bg-default);
+  overflow-x: auto;
+  /* Hide scrollbar per tab.postcss */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+.rp-tabs::-webkit-scrollbar { display: none; }
 
 .rp-tabs__tab {
-  padding: var(--space-md) var(--space-lg);
+  padding: 1rem 1rem;
   font-size: var(--text-body-sm);
   font-family: inherit;
   font-weight: var(--font-weight-normal);
   color: var(--color-gray-500);
   background: none;
   border: none;
-  border-bottom: 3px solid transparent;
   cursor: pointer;
-  transition: color var(--transition-fast), border-color var(--transition-fast);
+  transition: color var(--transition-fast);
   white-space: nowrap;
+  position: relative;
+}
+
+/* Active indicator via ::after: 3px bar, primary-500 per tab.postcss */
+.rp-tabs__tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: transparent;
+  transition: background var(--transition-fast);
 }
 
 .rp-tabs__tab:hover {
-  color: var(--color-primary);
+  color: var(--color-accent);
 }
 
 .rp-tabs__tab--active {
-  color: var(--color-primary);
+  color: var(--color-gray-800);
   font-weight: var(--font-weight-semibold);
-  border-bottom-color: var(--color-primary);
+}
+
+.rp-tabs__tab--active::after {
+  background: var(--color-accent-light);
 }
 
 /* ---- Content body ---- */
@@ -2149,6 +2645,259 @@ ul, ol { list-style: none; }
 }
 
 /* ---- Map placeholder ---- */
+/* ---- Mapbox map ---- */
+.rp-mapbox {
+  position: relative;
+  width: 100%;
+  min-height: 75vh;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-gray-200);
+}
+
+/* Right controls: vertically centered */
+.rp-mapbox .mapboxgl-ctrl-top-right {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Custom map buttons (home, 3D) */
+.rp-map-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 29px;
+  height: 29px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.rp-map-btn--3d span {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: #333;
+}
+
+/* Swisstopo search overlay — click-extend pattern */
+.rp-map-search {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+}
+.rp-map-search__form {
+  display: flex;
+  align-items: center;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+  overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.rp-map-search--open .rp-map-search__form {
+  border-color: var(--color-focus);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.rp-map-search__input {
+  width: 0;
+  opacity: 0;
+  padding: 0;
+  border: none;
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-sm);
+  outline: none;
+  height: 29px;
+  background: transparent;
+  transition: width 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+}
+.rp-map-search--open .rp-map-search__input {
+  width: 220px;
+  opacity: 1;
+  padding: 0 var(--space-sm);
+}
+.rp-map-search__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 29px;
+  height: 29px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  color: #333;
+  transition: color var(--transition-fast);
+}
+.rp-map-search__btn:hover {
+  color: var(--color-primary);
+}
+.rp-map-search__btn svg {
+  width: 16px;
+  height: 16px;
+}
+.rp-map-search__label {
+  font-size: var(--text-body-sm);
+  display: none;
+}
+.rp-map-search__results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.rp-map-search__item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-sm);
+  color: var(--color-gray-700);
+  cursor: pointer;
+  border-top: 1px solid var(--color-gray-100);
+  line-height: var(--line-height-normal);
+}
+.rp-map-search__item:hover {
+  background: var(--color-gray-50);
+}
+.rp-map-search__empty {
+  padding: 10px 12px;
+  font-size: var(--text-body-sm);
+  color: var(--color-gray-400);
+}
+
+/* Scale bar — lift above default attribution */
+.rp-mapbox .mapboxgl-ctrl-bottom-left {
+  bottom: 8px;
+}
+
+/* Style switcher — bottom-right, above attribution */
+.rp-style-switcher {
+  position: absolute;
+  bottom: 40px;
+  right: 20px;
+  z-index: 3;
+}
+.rp-style-switcher__btn {
+  background: #fff;
+  border: 2px solid var(--color-gray-300);
+  border-radius: 4px;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  box-shadow: var(--shadow-md);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.rp-style-switcher__btn:hover {
+  border-color: var(--color-gray-500);
+  box-shadow: var(--shadow-lg);
+}
+.rp-style-switcher__btn--active {
+  border-color: var(--color-primary);
+  background: var(--color-gray-50);
+}
+.rp-style-switcher__btn img {
+  width: 80px;
+  height: 60px;
+  border-radius: 2px;
+  object-fit: cover;
+}
+.rp-style-switcher__btn span {
+  font-size: var(--text-caption);
+  color: var(--color-gray-600);
+  font-weight: 500;
+}
+.rp-style-switcher__panel {
+  position: absolute;
+  bottom: 0;
+  right: 100%;
+  margin-right: var(--space-sm);
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: var(--shadow-xl);
+  padding: var(--space-xs);
+  display: flex;
+  gap: var(--space-xs);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(10px);
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+}
+.rp-style-switcher__panel--show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+.rp-style-option {
+  background: #fff;
+  border: 2px solid var(--color-gray-300);
+  border-radius: 4px;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+.rp-style-option:hover {
+  border-color: var(--color-gray-500);
+  transform: translateY(-2px);
+}
+.rp-style-option--active {
+  border-color: var(--color-primary);
+  border-width: 3px;
+  padding: 3px;
+}
+.rp-style-option img {
+  width: 70px;
+  height: 50px;
+  border-radius: 2px;
+  object-fit: cover;
+}
+.rp-style-option span {
+  font-size: var(--text-caption);
+  color: var(--color-gray-600);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.rp-style-option--active span {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.rp-mapbox .mapboxgl-popup-content {
+  font-family: var(--font-family-body);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+}
+
+.rp-mapbox .mapboxgl-popup-content strong {
+  display: block;
+  font-size: var(--text-body-sm);
+  margin-bottom: 2px;
+}
+
+.rp-mapbox .mapboxgl-popup-content span {
+  font-size: var(--text-caption);
+  color: var(--color-gray-500);
+}
+
 .rp-map-placeholder {
   display: flex;
   align-items: center;
@@ -2307,34 +3056,44 @@ ul, ol { list-style: none; }
   padding: var(--space-xl) 0;
 }
 
-/* ---- Data table ---- */
+/* ---- Data table – CD Bund table.postcss ---- */
 .rp-table {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--text-body-sm);
+  border: 1px solid var(--color-gray-200);
+  box-shadow: var(--shadow-md);
 }
 
+/* thead: bg secondary-50, th px-6 py-4, text text-700, uppercase, text-sm per table.postcss */
 .rp-table th {
   text-align: left;
-  padding: var(--space-sm) var(--space-md);
+  padding: 1rem 1.5rem;
   font-weight: var(--font-weight-semibold);
-  color: var(--color-gray-500);
-  border-bottom: 2px solid var(--color-gray-200);
-  font-size: var(--text-body-xs);
+  color: var(--color-gray-700);
+  background: var(--color-secondary-50);
+  font-size: var(--text-body-sm);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
 
+/* tbody td: px-6 py-4, text gray-600, border-top 1px text-300 per table.postcss */
 .rp-table td {
-  padding: var(--space-sm) var(--space-md);
-  border-bottom: 1px solid var(--color-gray-100);
-  color: var(--color-gray-700);
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--color-gray-300);
+  color: var(--color-gray-600);
+  font-size: var(--text-body);
 }
 
 .rp-table tfoot td {
   border-bottom: none;
   border-top: 2px solid var(--color-gray-200);
   padding-top: var(--space-md);
+}
+
+/* Zebra variant per table.postcss */
+.rp-table--zebra tbody tr:nth-child(even) {
+  background: var(--color-secondary-50);
 }
 
 .rp-table__row--link {
@@ -2376,7 +3135,7 @@ ul, ol { list-style: none; }
 
 .rp-floorplan__placeholder--compact:hover {
   border-color: var(--color-primary);
-  background: var(--color-primary-50, #e8f0fe);
+  background: var(--color-primary-50);
 }
 
 .rp-floorplan__placeholder--compact span {
@@ -2420,22 +3179,29 @@ ul, ol { list-style: none; }
   color: var(--color-text-inverse);
 }
 
-/* ===== RESPONSIVE ===== */
+/* ===== RESPONSIVE – CD Bund breakpoint system ===== */
 
-/* lg – hero top padding scales */
+/* lg – hero top padding scales per hero.postcss */
 @media (min-width: 1024px) {
   .hero { padding-top: 3.5rem; }
 }
 
-/* 3xl – hero top padding scales */
+/* 3xl – hero top padding scales per hero.postcss */
 @media (min-width: 1920px) {
   .hero { padding-top: 5rem; }
 }
 
-/* Tablet and below */
-@media (max-width: 768px) {
-  .burger { display: flex; }
-  .main-navigation { display: none; }
+/* 2xl – input min-heights scale per input.postcss */
+@media (min-width: 1544px) {
+  .form-input, .form-select, .form-textarea,
+  .search__field, .scan-area__input, .cart-item__qty-input {
+    min-height: 48px;
+  }
+}
+
+/* Below lg (1024px): mobile/tablet layout */
+@media (max-width: 1023px) {
+  /* Mobile nav open state */
   .main-navigation--mobile-open {
     display: flex;
     flex-direction: column;
@@ -2455,24 +3221,30 @@ ul, ol { list-style: none; }
     padding: 0 var(--space-lg);
     width: 100%;
   }
-  .hero { flex-direction: column; padding: var(--section-py-half) var(--container-padding); gap: var(--space-lg); }
-  .hero__title { font-size: var(--text-h1); }
-  .top-header__meta-nav { display: none; }
-  .top-bar__a11y-link span { display: none; }
-  .card--horizontal { flex-direction: column; }
-  .card--horizontal .card__image { width: 100%; padding-bottom: 56.25%; }
-  .notification-banner__wrapper { flex-direction: column; text-align: center; }
-  .top-header__dept { font-size: var(--text-body-sm); }
-  .top-header__text { height: 36px; }
-  .top-header__divider { height: var(--space-2xl); display: none; }
-  .top-header__left { flex-wrap: wrap; }
-  .top-header__action span { display: none; }
-  .top-bar__authorities { font-size: var(--text-caption); }
   .sidebar { display: none; }
   .app-layout { display: block; }
   .main-content { padding: var(--space-md); }
+}
+
+/* Very large screens: 4-column product grid */
+@media (min-width: 1400px) {
+  .product-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Below md (768px): mobile layout */
+@media (max-width: 767px) {
+  .hero { flex-direction: column; padding: var(--section-py-half) var(--container-padding); gap: var(--space-lg); }
+  .hero__title { font-size: var(--text-h1); }
+  .top-bar__a11y-link span { display: none; }
+  .card--horizontal { flex-direction: column; }
+  .card--horizontal .card__image { width: 100%; padding-bottom: 56.25%; }
+  .top-header__divider { display: none; }
+  .top-header__left { flex-wrap: wrap; }
+  .top-header__action span { display: none; }
+  .top-bar__authorities { font-size: var(--text-caption); }
   .tile-grid { grid-template-columns: 1fr; }
-  .footer-information__inner { grid-template-columns: 1fr; gap: var(--space-xl); }
   .app-footer__bottom { flex-direction: column; text-align: center; }
   .app-footer__links { flex-wrap: wrap; justify-content: center; }
   .scan-area { flex-direction: column; align-items: stretch; }
@@ -2497,15 +3269,13 @@ ul, ol { list-style: none; }
   .rp-content__body { padding: var(--space-lg); }
   .rp-detail__media { grid-template-columns: 1fr; }
   .rp-detail__grid { grid-template-columns: 1fr; gap: var(--space-md); }
-  .rp-tabs { padding: 0 var(--space-md); overflow-x: auto; }
+  .rp-tabs { padding: 0 var(--space-md); }
   .rp-tabs__tab { padding: var(--space-sm) var(--space-md); }
 }
 
-/* Small mobile */
-@media (max-width: 480px) {
-  .top-header__dept { font-size: var(--text-body-sm); }
+/* Small mobile (below xs: 480px) */
+@media (max-width: 479px) {
   .top-header__coat-of-arms { width: 28px; height: 28px; }
-  .top-header__text { height: 28px; }
   .toolbar { flex-direction: column; align-items: stretch; }
   .search { max-width: none; }
 }
