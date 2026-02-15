@@ -305,7 +305,7 @@ function renderOccupancy() {
   }
 
   // Build breadcrumb from selected node path (full spatial hierarchy)
-  const bcItems = [['Belegungsplanung', "navigateTo('occupancy')"]];
+  const bcItems = [['Arbeitsplätze verwalten', "navigateTo('occupancy')"]];
   if (selected) {
     selected.path.forEach(n => {
       const lbl = n.type === 'building' && n.code ? n.code : n.label;
@@ -315,15 +315,15 @@ function renderOccupancy() {
     const selLbl = selNode.type === 'building' && selNode.code ? selNode.code : selNode.label;
     bcItems.push([selLbl]);
   } else {
-    // No selection — Belegungsplanung is the current page (no link)
+    // No selection — Arbeitsplätze verwalten is the current page (no link)
     bcItems.length = 0;
-    bcItems.push(['Belegungsplanung']);
+    bcItems.push(['Arbeitsplätze verwalten']);
   }
 
   return `
     ${renderBreadcrumb(...bcItems)}
     <div class="page-hero">
-      <h1 class="page-hero__title">Belegungsplanung</h1>
+      <h1 class="page-hero__title">Arbeitsplätze verwalten</h1>
       <p class="page-hero__subtitle">Standorte, Geb&auml;ude und Geschosse der Bundesverwaltung verwalten und visualisieren.</p>
     </div>
     <div class="rp-layout" id="mainContent">
@@ -2402,7 +2402,7 @@ function occUpdateView() {
   }
 
   // Update breadcrumb (full spatial hierarchy)
-  const bcItems = [['Belegungsplanung', "navigateTo('occupancy')"]];
+  const bcItems = [['Arbeitsplätze verwalten', "navigateTo('occupancy')"]];
   if (selected) {
     selected.path.forEach(n => {
       const lbl = n.type === 'building' && n.code ? n.code : n.label;
@@ -2413,7 +2413,7 @@ function occUpdateView() {
     bcItems.push([selLbl]);
   } else {
     bcItems.length = 0;
-    bcItems.push(['Belegungsplanung']);
+    bcItems.push(['Arbeitsplätze verwalten']);
   }
   const bcEl = document.querySelector('.breadcrumb-bar');
   if (bcEl) bcEl.outerHTML = renderBreadcrumb(...bcItems);
