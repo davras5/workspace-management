@@ -361,6 +361,7 @@ let _editMode = false;
 let _activeEditTool = null;
 let _editSelectedInfo = null; // { source, featureIndex, feature, geo }
 let _editDragging = false;
+let _furnitureFeatures = []; // mockup furniture rectangles placed via edit mode
 
 // Derive a Point FeatureCollection from BUILDINGS_GEO centroids (for markers/labels)
 function buildingPointsFromGeo(geo) {
@@ -1000,6 +1001,43 @@ function clearMeasurement() {
   if (_measureDisplay) _measureDisplay.classList.remove('show');
 }
 
+// --- Furniture mockup helpers ---
+function createFurnitureRect(lngLat) {
+  // ~1.2m x 0.6m desk rectangle at the given position
+  const lat = lngLat.lat;
+  const mPerDegLat = 111320;
+  const mPerDegLng = 111320 * Math.cos(lat * Math.PI / 180);
+  const hw = 0.6 / mPerDegLng;  // half-width in degrees (~1.2m total)
+  const hh = 0.3 / mPerDegLat;  // half-height in degrees (~0.6m total)
+  const lng = lngLat.lng;
+  return {
+    type: 'Feature',
+    properties: { label: 'Neues M\u00f6bel' },
+    geometry: {
+      type: 'Polygon',
+      coordinates: [[
+        [lng - hw, lat - hh],
+        [lng + hw, lat - hh],
+        [lng + hw, lat + hh],
+        [lng - hw, lat + hh],
+        [lng - hw, lat - hh]
+      ]]
+    }
+  };
+}
+
+function updateFurnitureSource() {
+  if (!_occMap) return;
+  const data = { type: 'FeatureCollection', features: _furnitureFeatures };
+  const src = _occMap.getSource('furniture-mockup');
+  if (src) src.setData(data);
+}
+
+function clearFurniture() {
+  _furnitureFeatures = [];
+  updateFurnitureSource();
+}
+
 // --- Edit mode geometry helpers ---
 function editGetCentroid(coordinates) {
   const ring = Array.isArray(coordinates[0][0]) ? coordinates[0] : coordinates;
@@ -1081,6 +1119,7 @@ function ensureLayerOrder() {
   // Move layers to top in bottom→top order (last moveLayer call ends up on top)
   const orderedTop = [
     'floor-labels', 'room-labels',
+    'furniture-fills', 'furniture-outlines', 'furniture-labels',
     'building-points', 'building-labels',
     'edit-selection-outline'
   ];
@@ -1890,7 +1929,9 @@ function occInitMap() {
     editToolbar.classList.remove('rp-edit-toolbar--visible');
     editToolbar.querySelectorAll('.rp-edit-tool').forEach(t => t.classList.remove('rp-edit-tool--active'));
     container.classList.remove('rp-mapbox--editing');
+    _occMap.getCanvas().style.cursor = '';
     editClearSelection();
+    clearFurniture();
   }
 
   editToggle.addEventListener('click', openEditMode);
@@ -1907,10 +1948,12 @@ function occInitMap() {
       if (_activeEditTool === tool) {
         btn.classList.remove('rp-edit-tool--active');
         _activeEditTool = null;
+        _occMap.getCanvas().style.cursor = '';
       } else {
         editToolbar.querySelectorAll('.rp-edit-tool').forEach(t => t.classList.remove('rp-edit-tool--active'));
         btn.classList.add('rp-edit-tool--active');
         _activeEditTool = tool;
+        _occMap.getCanvas().style.cursor = tool === 'furniture' ? 'copy' : tool === 'delete' ? 'not-allowed' : '';
       }
     });
   });
@@ -1962,6 +2005,14 @@ function occInitMap() {
       });
     }
     if (_is3D) _occMap.setTerrain({ source: 'terrain-dem', exaggeration: 1.0 });
+
+    // Furniture mockup layer
+    if (!_occMap.getSource('furniture-mockup')) {
+      _occMap.addSource('furniture-mockup', { type: 'geojson', data: { type: 'FeatureCollection', features: _furnitureFeatures } });
+      _occMap.addLayer({ id: 'furniture-fills', type: 'fill', source: 'furniture-mockup', paint: { 'fill-color': '#6B7B8D', 'fill-opacity': 0.7 } });
+      _occMap.addLayer({ id: 'furniture-outlines', type: 'line', source: 'furniture-mockup', paint: { 'line-color': '#3d4f5f', 'line-width': 1.5 } });
+      _occMap.addLayer({ id: 'furniture-labels', type: 'symbol', source: 'furniture-mockup', layout: { 'text-field': ['get', 'label'], 'text-size': 9, 'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'], 'text-allow-overlap': true }, paint: { 'text-color': '#fff', 'text-halo-color': '#3d4f5f', 'text-halo-width': 0.5 } });
+    }
 
     // Edit selection highlight
     if (!_occMap.getSource('edit-selection')) {
@@ -2074,6 +2125,14 @@ function occInitMap() {
         });
       }
       if (_is3D) _occMap.setTerrain({ source: 'terrain-dem', exaggeration: 1.0 });
+
+      // Furniture mockup layer
+      if (!_occMap.getSource('furniture-mockup')) {
+        _occMap.addSource('furniture-mockup', { type: 'geojson', data: { type: 'FeatureCollection', features: _furnitureFeatures } });
+        _occMap.addLayer({ id: 'furniture-fills', type: 'fill', source: 'furniture-mockup', paint: { 'fill-color': '#6B7B8D', 'fill-opacity': 0.7 } });
+        _occMap.addLayer({ id: 'furniture-outlines', type: 'line', source: 'furniture-mockup', paint: { 'line-color': '#3d4f5f', 'line-width': 1.5 } });
+        _occMap.addLayer({ id: 'furniture-labels', type: 'symbol', source: 'furniture-mockup', layout: { 'text-field': ['get', 'label'], 'text-size': 9, 'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'], 'text-allow-overlap': true }, paint: { 'text-color': '#fff', 'text-halo-color': '#3d4f5f', 'text-halo-width': 0.5 } });
+      }
 
       // Edit selection highlight
       if (!_occMap.getSource('edit-selection')) {
@@ -2244,6 +2303,14 @@ function occInitMap() {
         const interactiveLayers = ['building-points', 'building-labels', 'building-footprints-fill', 'room-fills', 'asset-fills'];
         const hits = _occMap.queryRenderedFeatures(e.point, { layers: interactiveLayers.filter(l => _occMap.getLayer(l)) });
         if (hits.length === 0) clickPopup.remove();
+        return;
+      }
+
+      // Furniture tool: place a rectangle at click position
+      if (_activeEditTool === 'furniture') {
+        const feat = createFurnitureRect(e.lngLat);
+        _furnitureFeatures.push(feat);
+        updateFurnitureSource();
         return;
       }
 

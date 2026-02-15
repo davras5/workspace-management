@@ -3118,10 +3118,10 @@ ul, ol { list-style: none; }
 
 /* Accordion hint text */
 .rp-accordion__hint {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-secondary);
-  margin: 0 0 8px;
-  line-height: 1.4;
+  margin: 4px 14px 10px;
+  line-height: 1.5;
 }
 
 /* Secondary action button */
@@ -3164,7 +3164,7 @@ ul, ol { list-style: none; }
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
+  padding: 10px 14px;
   color: var(--text);
   cursor: pointer;
   transition: background 0.12s ease;
@@ -3222,13 +3222,13 @@ ul, ol { list-style: none; }
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 9px 14px;
+  padding: 12px 14px;
   background: #EBF0F5;
   border: none;
   border-top: 1px solid var(--color-gray-200);
   cursor: pointer;
   font-family: var(--font-family-body);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--color-gray-800);
   transition: background 0.15s ease;
@@ -3264,13 +3264,13 @@ ul, ol { list-style: none; }
   color: #fff;
   border: none;
   border-radius: 0 0 4px 4px;
-  padding: 7px 14px;
+  padding: 10px 16px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  font-size: 11px;
+  gap: 6px;
+  font-size: 13px;
   font-weight: 600;
   font-family: var(--font-family-body);
   white-space: nowrap;
@@ -3297,11 +3297,11 @@ ul, ol { list-style: none; }
 }
 .rp-accordion__search-input {
   width: 100%;
-  padding: 7px 10px;
+  padding: 10px 12px;
   border: 1px solid var(--color-gray-300);
   border-radius: 4px;
   font-family: var(--font-family-body);
-  font-size: 13px;
+  font-size: 14px;
   outline: none;
   box-sizing: border-box;
   transition: border-color 0.15s ease;
@@ -3318,11 +3318,11 @@ ul, ol { list-style: none; }
   display: block;
   width: 100%;
   text-align: left;
-  padding: 7px 10px;
+  padding: 10px 12px;
   border: none;
   background: none;
   font-family: var(--font-family-body);
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-gray-700);
   cursor: pointer;
   border-top: 1px solid var(--color-gray-100);
@@ -3332,31 +3332,31 @@ ul, ol { list-style: none; }
   background: var(--color-gray-50);
 }
 .rp-accordion__search-empty {
-  padding: 8px 10px;
-  font-size: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
   color: var(--color-gray-400);
 }
 
 /* ---- Form elements inside accordion ---- */
 .rp-accordion__form-row {
-  padding: 6px 14px;
+  padding: 8px 14px;
 }
 .rp-accordion__form-row > label {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--color-gray-600);
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  margin-bottom: 4px;
+  margin-bottom: 5px;
 }
 .rp-accordion__input {
   width: 100%;
-  padding: 6px 8px;
+  padding: 8px 10px;
   border: 1px solid var(--color-gray-300);
   border-radius: 4px;
   font-family: var(--font-family-body);
-  font-size: 12px;
+  font-size: 13px;
   outline: none;
   box-sizing: border-box;
 }
@@ -3366,7 +3366,7 @@ ul, ol { list-style: none; }
 .rp-accordion__radio-group {
   display: flex;
   gap: 12px;
-  font-size: 12px;
+  font-size: 13px;
 }
 .rp-accordion__radio-group label {
   display: flex;
@@ -3384,11 +3384,11 @@ ul, ol { list-style: none; }
   min-width: 0;
 }
 .rp-accordion__copy-btn {
-  padding: 5px 10px;
+  padding: 8px 12px;
   border: 1px solid var(--color-gray-300);
   border-radius: 4px;
   background: var(--color-gray-50);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -3401,12 +3401,12 @@ ul, ol { list-style: none; }
   display: block;
   width: calc(100% - 28px);
   margin: 8px 14px;
-  padding: 7px 12px;
+  padding: 10px 12px;
   background: #003C69;
   color: #fff;
   border: none;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   text-align: center;
@@ -3428,11 +3428,11 @@ ul, ol { list-style: none; }
 }
 .rp-accordion__select {
   width: 100%;
-  padding: 6px 28px 6px 8px;
+  padding: 8px 28px 8px 10px;
   border: 1px solid var(--color-gray-300);
   border-radius: 4px;
   font-family: var(--font-family-body);
-  font-size: 12px;
+  font-size: 13px;
   outline: none;
   box-sizing: border-box;
   background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E") no-repeat right 8px center;
@@ -3475,12 +3475,12 @@ ul, ol { list-style: none; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 14px;
+  padding: 8px 14px;
 }
 .rp-accordion__layer-title {
   font-weight: 600;
   color: var(--color-gray-700);
-  font-size: 11px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -3488,7 +3488,7 @@ ul, ol { list-style: none; }
   background: none;
   border: none;
   cursor: pointer;
-  padding: 3px;
+  padding: 6px;
   border-radius: 4px;
   color: var(--color-gray-500);
   display: flex;
@@ -3512,19 +3512,19 @@ ul, ol { list-style: none; }
   opacity: 0.5;
 }
 .rp-accordion__layer-items {
-  padding: 2px 14px 8px;
+  padding: 2px 14px 10px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
   transition: opacity 0.15s ease;
 }
 .rp-accordion__layer-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 11px;
+  gap: 7px;
+  font-size: 12px;
   color: var(--color-gray-600);
-  line-height: 1.3;
+  line-height: 1.4;
 }
 .rp-accordion__swatch {
   width: 12px;
