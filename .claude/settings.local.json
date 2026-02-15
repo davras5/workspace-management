@@ -32,7 +32,8 @@
       "WebFetch(domain:unpkg.com)",
       "Bash(ls:*)",
       "Bash(python3:*)",
-      "Bash(comm:*)"
+      "Bash(comm:*)",
+      "Bash(grep:*)"
     ]
   }
 }
