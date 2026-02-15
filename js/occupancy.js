@@ -335,6 +335,7 @@ function renderOccupancy() {
 // ===================================================================
 let _occMap = null;
 let _searchMarker = null;
+let _is3D = false;
 
 // Derive a Point FeatureCollection from BUILDINGS_GEO centroids (for markers/labels)
 function buildingPointsFromGeo(geo) {
@@ -384,12 +385,14 @@ function addRoomLayers() {
 
   _occMap.addLayer({
     id: 'room-fills',
-    type: 'fill',
+    type: 'fill-extrusion',
     source: 'rooms',
     minzoom: 16,
     paint: {
-      'fill-color': ROOM_COLOR_MATCH,
-      'fill-opacity': 0.6
+      'fill-extrusion-color': ROOM_COLOR_MATCH,
+      'fill-extrusion-opacity': 0.6,
+      'fill-extrusion-base': _is3D ? ['get', 'baseHeight'] : 0,
+      'fill-extrusion-height': _is3D ? ['get', 'topHeight'] : 0
     }
   });
 
@@ -456,12 +459,14 @@ function addAssetLayers() {
 
   _occMap.addLayer({
     id: 'asset-fills',
-    type: 'fill',
+    type: 'fill-extrusion',
     source: 'assets',
     minzoom: 18,
     paint: {
-      'fill-color': '#6B7B8D',
-      'fill-opacity': 0.6
+      'fill-extrusion-color': '#6B7B8D',
+      'fill-extrusion-opacity': 0.6,
+      'fill-extrusion-base': _is3D ? ['get', 'baseHeight'] : 0,
+      'fill-extrusion-height': _is3D ? ['get', 'topHeight'] : 0
     }
   });
 
@@ -487,12 +492,14 @@ function occInitMap() {
     _occMap.remove();
     _occMap = null;
   }
+  _is3D = false;
 
   _occMap = new maplibregl.Map({
     container: 'rp-mapbox',
     style: MAP_STYLES[state.occMapStyle] ? MAP_STYLES[state.occMapStyle].url : MAP_STYLES['positron'].url,
     center: [7.9, 47.1],
-    zoom: 7.2
+    zoom: 7.2,
+    preserveDrawingBuffer: true
   });
 
   // Fullscreen toggle
@@ -535,7 +542,21 @@ function occInitMap() {
       div.className = 'maplibregl-ctrl maplibregl-ctrl-group';
       div.innerHTML = '<button class="rp-map-btn rp-map-btn--home" type="button" title="Gesamtansicht" aria-label="Gesamtansicht"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L10 4l7 6.5"/><path d="M5 9v6.5a.5.5 0 00.5.5H8v-4h4v4h2.5a.5.5 0 00.5-.5V9"/></svg></button>';
       div.querySelector('button').addEventListener('click', () => {
+        // Reset 3D state
+        _is3D = false;
+        map.setTerrain(null);
         map.flyTo({ center: [7.9, 47.1], zoom: 7.2, pitch: 0, bearing: 0 });
+        // Flatten extrusions
+        if (map.getLayer('room-fills')) {
+          map.setPaintProperty('room-fills', 'fill-extrusion-base', 0);
+          map.setPaintProperty('room-fills', 'fill-extrusion-height', 0);
+        }
+        if (map.getLayer('asset-fills')) {
+          map.setPaintProperty('asset-fills', 'fill-extrusion-base', 0);
+          map.setPaintProperty('asset-fills', 'fill-extrusion-height', 0);
+        }
+        if (map.getLayer('room-outlines')) map.setLayoutProperty('room-outlines', 'visibility', 'visible');
+        if (map.getLayer('asset-outlines')) map.setLayoutProperty('asset-outlines', 'visibility', 'visible');
         const btn3d = container.querySelector('.rp-map-btn--3d span');
         if (btn3d) btn3d.textContent = '3D';
       });
@@ -553,13 +574,43 @@ function occInitMap() {
       div.innerHTML = '<button class="rp-map-btn rp-map-btn--3d" type="button" title="3D-Ansicht umschalten" aria-label="3D-Ansicht umschalten"><span>3D</span></button>';
       const btn = div.querySelector('button');
       btn.addEventListener('click', () => {
-        const is3D = map.getPitch() > 0;
-        if (is3D) {
-          map.easeTo({ pitch: 0, bearing: 0, duration: 600 });
-          btn.querySelector('span').textContent = '3D';
-        } else {
+        _is3D = !_is3D;
+        if (_is3D) {
+          // Enable terrain + extrusion heights
+          if (map.getSource('terrain-dem')) {
+            map.setTerrain({ source: 'terrain-dem', exaggeration: 1.0 });
+          }
           map.easeTo({ pitch: 60, bearing: -20, duration: 600 });
           btn.querySelector('span').textContent = '2D';
+          // Switch to extruded heights
+          if (map.getLayer('room-fills')) {
+            map.setPaintProperty('room-fills', 'fill-extrusion-base', ['get', 'baseHeight']);
+            map.setPaintProperty('room-fills', 'fill-extrusion-height', ['get', 'topHeight']);
+          }
+          if (map.getLayer('asset-fills')) {
+            map.setPaintProperty('asset-fills', 'fill-extrusion-base', ['get', 'baseHeight']);
+            map.setPaintProperty('asset-fills', 'fill-extrusion-height', ['get', 'topHeight']);
+          }
+          // Hide flat outlines in 3D (they render at z=0)
+          if (map.getLayer('room-outlines')) map.setLayoutProperty('room-outlines', 'visibility', 'none');
+          if (map.getLayer('asset-outlines')) map.setLayoutProperty('asset-outlines', 'visibility', 'none');
+        } else {
+          // Disable terrain + flatten extrusions
+          map.setTerrain(null);
+          map.easeTo({ pitch: 0, bearing: 0, duration: 600 });
+          btn.querySelector('span').textContent = '3D';
+          // Flatten to 2D
+          if (map.getLayer('room-fills')) {
+            map.setPaintProperty('room-fills', 'fill-extrusion-base', 0);
+            map.setPaintProperty('room-fills', 'fill-extrusion-height', 0);
+          }
+          if (map.getLayer('asset-fills')) {
+            map.setPaintProperty('asset-fills', 'fill-extrusion-base', 0);
+            map.setPaintProperty('asset-fills', 'fill-extrusion-height', 0);
+          }
+          // Show outlines again
+          if (map.getLayer('room-outlines')) map.setLayoutProperty('room-outlines', 'visibility', 'visible');
+          if (map.getLayer('asset-outlines')) map.setLayoutProperty('asset-outlines', 'visibility', 'visible');
         }
       });
       return div;
@@ -568,54 +619,181 @@ function occInitMap() {
   };
   _occMap.addControl(toggle3dCtrl, 'top-right');
 
-  // Swisstopo address search overlay
-  const searchEl = document.createElement('div');
-  searchEl.className = 'rp-map-search';
-  searchEl.innerHTML = `
-    <form class="rp-map-search__form" role="search" aria-label="Adresse suchen">
-      <input class="rp-map-search__input" type="text" placeholder="Adresse suchen\u2026" autocomplete="off">
-      <button class="rp-map-search__btn" type="button" aria-label="Adresse suchen">
-        <span class="rp-map-search__label">Suche</span>
-        <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="17" y2="17"/></svg>
+  // ---- Accordion toolbar panel (top-left) ----
+  const accordionWrap = document.createElement('div');
+  accordionWrap.className = 'rp-accordion-wrap';
+  const accordion = document.createElement('div');
+  accordion.className = 'rp-accordion';
+  accordion.id = 'rpAccordion';
+  accordion.innerHTML = `
+    <!-- Suche -->
+    <div class="rp-accordion__section" data-section="suche">
+      <button class="rp-accordion__toggle" type="button">
+        <span>Suche</span>
+        <svg class="rp-accordion__chevron" viewBox="0 0 12 12" width="12" height="12"><polyline points="4,2 8,6 4,10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-    </form>
-    <div class="rp-map-search__results"></div>`;
-  container.appendChild(searchEl);
+      <div class="rp-accordion__body">
+        <div class="rp-accordion__search">
+          <input class="rp-accordion__search-input" type="text" placeholder="Adresse suchen\u2026" autocomplete="off">
+          <div class="rp-accordion__search-results"></div>
+        </div>
+      </div>
+    </div>
 
-  const searchBtn = searchEl.querySelector('.rp-map-search__btn');
-  const searchInput = searchEl.querySelector('.rp-map-search__input');
-  const searchResults = searchEl.querySelector('.rp-map-search__results');
+    <!-- Drucken -->
+    <div class="rp-accordion__section" data-section="drucken">
+      <button class="rp-accordion__toggle" type="button">
+        <span>Drucken</span>
+        <svg class="rp-accordion__chevron" viewBox="0 0 12 12" width="12" height="12"><polyline points="4,2 8,6 4,10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="rp-accordion__body">
+        <div class="rp-accordion__form-row">
+          <label>Titel</label>
+          <input class="rp-accordion__input" type="text" placeholder="Kartentitel\u2026" id="rpPrintTitle">
+        </div>
+        <div class="rp-accordion__form-row">
+          <label>Format</label>
+          <div class="rp-accordion__radio-group">
+            <label><input type="radio" name="rpPrintFormat" value="a4" checked> A4</label>
+            <label><input type="radio" name="rpPrintFormat" value="a3"> A3</label>
+          </div>
+        </div>
+        <div class="rp-accordion__form-row">
+          <label>Ausrichtung</label>
+          <div class="rp-accordion__radio-group">
+            <label><input type="radio" name="rpPrintOrient" value="landscape" checked> Querformat</label>
+            <label><input type="radio" name="rpPrintOrient" value="portrait"> Hochformat</label>
+          </div>
+        </div>
+        <button class="rp-accordion__action-btn" id="rpPrintBtn" type="button">Drucken</button>
+      </div>
+    </div>
 
-  searchBtn.addEventListener('click', () => {
-    const isOpen = searchEl.classList.contains('rp-map-search--open');
-    if (isOpen) {
-      searchEl.classList.remove('rp-map-search--open');
-      searchInput.value = '';
-      searchResults.innerHTML = '';
-    } else {
-      searchEl.classList.add('rp-map-search--open');
-      searchInput.focus();
-    }
+    <!-- Teilen -->
+    <div class="rp-accordion__section" data-section="teilen">
+      <button class="rp-accordion__toggle" type="button">
+        <span>Teilen</span>
+        <svg class="rp-accordion__chevron" viewBox="0 0 12 12" width="12" height="12"><polyline points="4,2 8,6 4,10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="rp-accordion__body">
+        <div class="rp-accordion__form-row">
+          <label>Link zur aktuellen Ansicht</label>
+          <div class="rp-accordion__link-row">
+            <input class="rp-accordion__input rp-accordion__share-url" type="text" readonly id="rpShareUrl">
+            <button class="rp-accordion__copy-btn" id="rpCopyLink" type="button" title="Kopieren">Kopieren</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bearbeiten -->
+    <div class="rp-accordion__section" data-section="bearbeiten">
+      <button class="rp-accordion__toggle" type="button">
+        <span>Bearbeiten</span>
+        <svg class="rp-accordion__chevron" viewBox="0 0 12 12" width="12" height="12"><polyline points="4,2 8,6 4,10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="rp-accordion__body">
+        <div class="rp-accordion__btn-grid">
+          <button class="rp-accordion__action-btn" id="rpExportGeoJSON" type="button">Export GeoJSON</button>
+          <button class="rp-accordion__action-btn" id="rpExportCSV" type="button">Export CSV</button>
+        </div>
+        <div class="rp-accordion__form-row">
+          <label>Import</label>
+          <input class="rp-accordion__file-input" type="file" accept=".geojson,.json,.csv" id="rpImportFile">
+        </div>
+        <div class="rp-accordion__form-row">
+          <label class="rp-accordion__switch-label">
+            <input type="checkbox" id="rpEditMode">
+            <span>Live-Bearbeitung</span>
+          </label>
+          <span class="rp-accordion__hint">Objekte per Drag & Drop verschieben</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ebenen -->
+    <div class="rp-accordion__section" data-section="ebenen">
+      <button class="rp-accordion__toggle" type="button">
+        <span>Ebenen</span>
+        <svg class="rp-accordion__chevron" viewBox="0 0 12 12" width="12" height="12"><polyline points="4,2 8,6 4,10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="rp-accordion__body">
+        <div class="rp-accordion__layer-section" data-layer="buildings">
+          <div class="rp-accordion__layer-header">
+            <span class="rp-accordion__layer-title">Geb\u00e4ude</span>
+            <button class="rp-accordion__eye active" data-layer="buildings" title="Layer ein/ausblenden">
+              <svg class="rp-accordion__eye-open" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="10" cy="10" r="3"/></svg>
+              <svg class="rp-accordion__eye-closed" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><line x1="3" y1="3" x2="17" y2="17"/></svg>
+            </button>
+          </div>
+          <div class="rp-accordion__layer-items">
+            <div class="rp-accordion__layer-item"><span class="rp-accordion__swatch" style="background:#d73027"></span><span>Geb\u00e4ude</span></div>
+          </div>
+        </div>
+        <div class="rp-accordion__layer-section" data-layer="rooms">
+          <div class="rp-accordion__layer-header">
+            <span class="rp-accordion__layer-title">R\u00e4ume</span>
+            <button class="rp-accordion__eye active" data-layer="rooms" title="Layer ein/ausblenden">
+              <svg class="rp-accordion__eye-open" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="10" cy="10" r="3"/></svg>
+              <svg class="rp-accordion__eye-closed" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><line x1="3" y1="3" x2="17" y2="17"/></svg>
+            </button>
+          </div>
+          <div class="rp-accordion__layer-items">
+            ${Object.entries(ROOM_COLORS)
+              .filter(([type]) => type !== 'Korridor')
+              .map(([type, color]) => `<div class="rp-accordion__layer-item"><span class="rp-accordion__swatch" style="background:${color}"></span><span>${type}</span></div>`).join('')}
+          </div>
+        </div>
+        <div class="rp-accordion__layer-section" data-layer="assets">
+          <div class="rp-accordion__layer-header">
+            <span class="rp-accordion__layer-title">Inventar</span>
+            <button class="rp-accordion__eye active" data-layer="assets" title="Layer ein/ausblenden">
+              <svg class="rp-accordion__eye-open" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="10" cy="10" r="3"/></svg>
+              <svg class="rp-accordion__eye-closed" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><line x1="3" y1="3" x2="17" y2="17"/></svg>
+            </button>
+          </div>
+          <div class="rp-accordion__layer-items">
+            <div class="rp-accordion__layer-item"><span class="rp-accordion__swatch" style="background:#6B7B8D"></span><span>Inventarobjekt</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  accordionWrap.appendChild(accordion);
+
+  // Accordion toggle button (collapse/expand the panel)
+  const accordionToggle = document.createElement('button');
+  accordionToggle.className = 'rp-accordion__panel-toggle';
+  accordionToggle.type = 'button';
+  accordionToggle.title = 'Menu ausblenden';
+  accordionToggle.innerHTML = '<svg viewBox="0 0 12 12" width="12" height="12"><polyline points="2,4 6,8 10,4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Menu ausblenden</span>';
+  accordionWrap.appendChild(accordionToggle);
+  container.appendChild(accordionWrap);
+
+  accordionToggle.addEventListener('click', () => {
+    const isCollapsing = !accordion.classList.contains('rp-accordion--collapsed');
+    accordion.classList.toggle('rp-accordion--collapsed');
+    accordionToggle.classList.toggle('rp-accordion__panel-toggle--collapsed');
+    const label = isCollapsing ? 'Menu einblenden' : 'Menu ausblenden';
+    accordionToggle.querySelector('span').textContent = label;
+    accordionToggle.title = label;
   });
 
-  // Close search on Escape
-  searchInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      searchEl.classList.remove('rp-map-search--open');
-      searchInput.value = '';
-      searchResults.innerHTML = '';
-    }
+  // Single-open accordion behavior
+  accordion.querySelectorAll('.rp-accordion__toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const section = btn.closest('.rp-accordion__section');
+      const wasOpen = section.classList.contains('rp-accordion__section--open');
+      // Close all sections
+      accordion.querySelectorAll('.rp-accordion__section').forEach(s => s.classList.remove('rp-accordion__section--open'));
+      // Open clicked section (unless it was already open)
+      if (!wasOpen) section.classList.add('rp-accordion__section--open');
+    });
   });
 
-  // Close search when clicking outside
-  document.addEventListener('click', (e) => {
-    if (!searchEl.contains(e.target) && searchEl.classList.contains('rp-map-search--open')) {
-      searchEl.classList.remove('rp-map-search--open');
-      searchInput.value = '';
-      searchResults.innerHTML = '';
-    }
-  });
-
+  // ---- Suche (address search) ----
+  const searchInput = accordion.querySelector('.rp-accordion__search-input');
+  const searchResults = accordion.querySelector('.rp-accordion__search-results');
   let _searchDebounce = null;
   searchInput.addEventListener('input', () => {
     clearTimeout(_searchDebounce);
@@ -626,28 +804,142 @@ function occInitMap() {
         const res = await fetch(`https://api3.geo.admin.ch/rest/services/ech/SearchServer?searchText=${encodeURIComponent(q)}&type=locations&limit=6&sr=4326`);
         const data = await res.json();
         if (!data.results || !data.results.length) {
-          searchResults.innerHTML = '<div class="rp-map-search__empty">Keine Ergebnisse</div>';
+          searchResults.innerHTML = '<div class="rp-accordion__search-empty">Keine Ergebnisse</div>';
           return;
         }
         searchResults.innerHTML = data.results.map((r, i) =>
-          `<button class="rp-map-search__item" data-idx="${i}" type="button">${r.attrs.label.replace(/<[^>]+>/g, '')}</button>`
+          `<button class="rp-accordion__search-item" data-idx="${i}" type="button">${r.attrs.label.replace(/<[^>]+>/g, '')}</button>`
         ).join('');
-        searchResults.querySelectorAll('.rp-map-search__item').forEach((btn, i) => {
+        searchResults.querySelectorAll('.rp-accordion__search-item').forEach((btn, i) => {
           btn.addEventListener('click', () => {
             const r = data.results[i];
             const lngLat = [r.attrs.lon, r.attrs.lat];
             if (_searchMarker) _searchMarker.remove();
             _searchMarker = new maplibregl.Marker({ color: '#0066cc' }).setLngLat(lngLat).addTo(_occMap);
             _occMap.flyTo({ center: lngLat, zoom: 17, speed: 1.4 });
-            searchEl.classList.remove('rp-map-search--open');
             searchInput.value = '';
             searchResults.innerHTML = '';
           });
         });
       } catch (e) {
-        searchResults.innerHTML = '<div class="rp-map-search__empty">Fehler bei der Suche</div>';
+        searchResults.innerHTML = '<div class="rp-accordion__search-empty">Fehler bei der Suche</div>';
       }
     }, 300);
+  });
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { searchInput.value = ''; searchResults.innerHTML = ''; }
+  });
+
+  // ---- Drucken ----
+  accordion.querySelector('#rpPrintBtn').addEventListener('click', () => {
+    const title = accordion.querySelector('#rpPrintTitle').value || 'Karte';
+    const canvas = _occMap.getCanvas();
+    const dataUrl = canvas.toDataURL('image/png');
+    const win = window.open('', '_blank');
+    if (win) {
+      win.document.write(`<!DOCTYPE html><html><head><title>${title}</title><style>@media print{@page{margin:1cm}body{margin:0}img{max-width:100%;height:auto}h1{font:16px/1.3 sans-serif;margin:0 0 8px}}</style></head><body><h1>${title}</h1><img src="${dataUrl}"><script>window.onload=function(){window.print()}<\/script></body></html>`);
+      win.document.close();
+    }
+  });
+
+  // ---- Teilen ----
+  function updateShareUrl() {
+    const urlInput = accordion.querySelector('#rpShareUrl');
+    if (urlInput) urlInput.value = window.location.href;
+  }
+  accordion.querySelector('#rpCopyLink').addEventListener('click', () => {
+    updateShareUrl();
+    const urlInput = accordion.querySelector('#rpShareUrl');
+    navigator.clipboard.writeText(urlInput.value).then(() => {
+      const btn = accordion.querySelector('#rpCopyLink');
+      btn.textContent = 'Kopiert!';
+      setTimeout(() => { btn.textContent = 'Kopieren'; }, 2000);
+    });
+  });
+  // Update share URL when section opens
+  accordion.querySelector('[data-section="teilen"] .rp-accordion__toggle').addEventListener('click', () => {
+    setTimeout(updateShareUrl, 50);
+  });
+
+  // ---- Bearbeiten ----
+  accordion.querySelector('#rpExportGeoJSON').addEventListener('click', () => {
+    const rooms = getFilteredRooms();
+    const blob = new Blob([JSON.stringify(rooms, null, 2)], { type: 'application/geo+json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'rooms.geojson';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  accordion.querySelector('#rpExportCSV').addEventListener('click', () => {
+    const rooms = getFilteredRooms();
+    if (!rooms.features.length) return;
+    const keys = Object.keys(rooms.features[0].properties);
+    const header = keys.join(';');
+    const rows = rooms.features.map(f => keys.map(k => {
+      const v = f.properties[k];
+      return typeof v === 'string' && v.includes(';') ? `"${v}"` : (v ?? '');
+    }).join(';'));
+    const csv = [header, ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'rooms.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  accordion.querySelector('#rpImportFile').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        if (data.type === 'FeatureCollection') {
+          const roomSource = _occMap.getSource('rooms');
+          if (roomSource) roomSource.setData(data);
+        }
+      } catch (err) {
+        console.warn('Import error:', err);
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  // Live edit mode (drag features)
+  let _editMode = false;
+  let _dragFeature = null;
+  accordion.querySelector('#rpEditMode').addEventListener('change', (e) => {
+    _editMode = e.target.checked;
+    _occMap.getCanvas().style.cursor = _editMode ? 'grab' : '';
+    if (!_editMode) {
+      _dragFeature = null;
+    }
+  });
+  _occMap.on('mousedown', 'room-fills', (e) => {
+    if (!_editMode) return;
+    e.preventDefault();
+    _dragFeature = e.features[0];
+    _occMap.getCanvas().style.cursor = 'grabbing';
+    _occMap.once('mouseup', () => {
+      _dragFeature = null;
+      _occMap.getCanvas().style.cursor = 'grab';
+    });
+  });
+  _occMap.on('mousemove', (e) => {
+    if (!_editMode || !_dragFeature) return;
+    // Move the feature to the new position by updating the source
+    const roomSource = _occMap.getSource('rooms');
+    if (!roomSource) return;
+    const data = getFilteredRooms();
+    const feat = data.features.find(f => f.properties.roomId === _dragFeature.properties.roomId);
+    if (!feat) return;
+    const dx = e.lngLat.lng - feat.geometry.coordinates[0][0][0];
+    const dy = e.lngLat.lat - feat.geometry.coordinates[0][0][1];
+    feat.geometry.coordinates[0] = feat.geometry.coordinates[0].map(c => [c[0] + dx, c[1] + dy]);
+    roomSource.setData(data);
   });
 
   // Scale bar
@@ -713,68 +1005,6 @@ function occInitMap() {
     });
   });
 
-  // Legend accordion widget
-  const legendAccordion = document.createElement('div');
-  legendAccordion.className = 'rp-legend expanded';
-  legendAccordion.id = 'rpLegend';
-  legendAccordion.innerHTML = `
-    <button class="rp-legend__header" id="rpLegendHeader">
-      <svg class="rp-legend__icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><circle cx="7" cy="6" r="2" fill="currentColor"/><line x1="3" y1="12" x2="21" y2="12"/><circle cx="14" cy="12" r="2" fill="currentColor"/><line x1="3" y1="18" x2="21" y2="18"/><circle cx="10" cy="18" r="2" fill="currentColor"/></svg>
-      <span class="rp-legend__title">Legende</span>
-      <svg class="rp-legend__chevron" viewBox="0 0 12 12" width="12" height="12"><polyline points="3,4 6,7 9,4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-    <div class="rp-legend__content" id="rpLegendContent">
-
-      <div class="rp-legend__section" data-layer="buildings">
-        <div class="rp-legend__section-header">
-          <span class="rp-legend__section-title">Geb\u00e4ude</span>
-          <button class="rp-legend__eye active" data-layer="buildings" title="Layer ein/ausblenden">
-            <svg class="rp-legend__eye-open" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="10" cy="10" r="3"/></svg>
-            <svg class="rp-legend__eye-closed" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><line x1="3" y1="3" x2="17" y2="17"/></svg>
-          </button>
-        </div>
-        <div class="rp-legend__items">
-          <div class="rp-legend__item"><span class="rp-legend__swatch" style="background:#d73027"></span><span>Geb\u00e4ude</span></div>
-        </div>
-      </div>
-
-      <div class="rp-legend__section" data-layer="rooms">
-        <div class="rp-legend__section-header">
-          <span class="rp-legend__section-title">R\u00e4ume</span>
-          <button class="rp-legend__eye active" data-layer="rooms" title="Layer ein/ausblenden">
-            <svg class="rp-legend__eye-open" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="10" cy="10" r="3"/></svg>
-            <svg class="rp-legend__eye-closed" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><line x1="3" y1="3" x2="17" y2="17"/></svg>
-          </button>
-        </div>
-        <div class="rp-legend__items">
-          ${Object.entries(ROOM_COLORS)
-            .filter(([type]) => type !== 'Korridor')
-            .map(([type, color]) => `<div class="rp-legend__item"><span class="rp-legend__swatch" style="background:${color}"></span><span>${type}</span></div>`).join('')}
-        </div>
-      </div>
-
-      <div class="rp-legend__section" data-layer="assets">
-        <div class="rp-legend__section-header">
-          <span class="rp-legend__section-title">Inventar</span>
-          <button class="rp-legend__eye active" data-layer="assets" title="Layer ein/ausblenden">
-            <svg class="rp-legend__eye-open" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="10" cy="10" r="3"/></svg>
-            <svg class="rp-legend__eye-closed" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><line x1="3" y1="3" x2="17" y2="17"/></svg>
-          </button>
-        </div>
-        <div class="rp-legend__items">
-          <div class="rp-legend__item"><span class="rp-legend__swatch" style="background:#6B7B8D"></span><span>Inventarobjekt</span></div>
-        </div>
-      </div>
-
-    </div>
-  `;
-  container.appendChild(legendAccordion);
-
-  // Accordion expand/collapse
-  legendAccordion.querySelector('#rpLegendHeader').addEventListener('click', () => {
-    legendAccordion.classList.toggle('expanded');
-  });
-
   // Layer visibility map: layer name → MapLibre layer IDs
   const LAYER_MAP = {
     'buildings': ['building-points', 'building-labels', 'building-footprints-fill', 'building-footprints-outline'],
@@ -790,12 +1020,12 @@ function occInitMap() {
         _occMap.setLayoutProperty(id, 'visibility', visibility);
       }
     }
-    const section = legendAccordion.querySelector(`.rp-legend__section[data-layer="${layerName}"]`);
-    if (section) section.classList.toggle('rp-legend__section--hidden', !visible);
+    const section = accordion.querySelector(`.rp-accordion__layer-section[data-layer="${layerName}"]`);
+    if (section) section.classList.toggle('rp-accordion__layer-section--hidden', !visible);
   }
 
-  // Eye toggle buttons
-  legendAccordion.querySelectorAll('.rp-legend__eye').forEach(btn => {
+  // Eye toggle buttons (Ebenen section)
+  accordion.querySelectorAll('.rp-accordion__eye').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const layer = btn.dataset.layer;
@@ -839,6 +1069,18 @@ function occInitMap() {
 
     // Asset layers
     addAssetLayers();
+
+    // Terrain DEM source for 3D elevation
+    if (!_occMap.getSource('terrain-dem')) {
+      _occMap.addSource('terrain-dem', {
+        type: 'raster-dem',
+        tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+        encoding: 'terrarium',
+        tileSize: 256,
+        maxzoom: 15
+      });
+    }
+    if (_is3D) _occMap.setTerrain({ source: 'terrain-dem', exaggeration: 1.0 });
   });
 
   _occMap.on('load', () => {
@@ -945,6 +1187,18 @@ function occInitMap() {
 
       // Asset layers
       addAssetLayers();
+
+      // Terrain DEM source for 3D elevation
+      if (!_occMap.getSource('terrain-dem')) {
+        _occMap.addSource('terrain-dem', {
+          type: 'raster-dem',
+          tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+          encoding: 'terrarium',
+          tileSize: 256,
+          maxzoom: 15
+        });
+      }
+      if (_is3D) _occMap.setTerrain({ source: 'terrain-dem', exaggeration: 1.0 });
 
       // Fit map to visible features
       if (filteredGeo.features.length > 0 && selId && selId !== 'ch') {

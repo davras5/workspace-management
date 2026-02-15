@@ -3,7 +3,8 @@
  * Generate GeoJSON files with realistic corridor-based floor plans.
  * Reads from existing buildings.geojson + floors.geojson + rooms.geojson,
  * then regenerates floors.geojson (inset polygons) and rooms.geojson
- * (corridor layout). buildings.geojson is read-only input.
+ * (corridor layout). Fetches ground elevation from Swisstopo API and
+ * computes 3D stacking heights for floors, rooms, and assets.
  */
 const fs = require('fs');
 const path = require('path');
@@ -35,6 +36,50 @@ const roomDepthLat = ROOM_DEPTH / M_PER_DEG_LAT;
 const corridorWidthLat = CORRIDOR_WIDTH / M_PER_DEG_LAT;
 const roomGapLng = ROOM_GAP / M_PER_DEG_LNG;
 
+// ── HEIGHT CONSTANTS ─────────────────────────────────────────────────
+const FLOOR_HEIGHT = 3.5; // meters floor-to-floor
+
+// Asset 3D heights by category (meters)
+const ASSET_HEIGHTS = {
+  'buerostuehle':       0.45,
+  'konferenzstuehle':   0.45,
+  'besucherstuhl':      0.45,
+  'schreibtische':      0.75,
+  'usm-haller':         1.50,
+  'rollkorpus':         0.60,
+  'it-equipment':       0.30,
+  'medientechnik':      0.40,
+  'kueche':             0.90,
+  'schreibtischlampen': 0.50,
+  'buerogeraete':       0.40,
+  'raumklima':          0.30
+};
+const DEFAULT_ASSET_HEIGHT = 0.50;
+
+// ── WGS84 → LV95 COORDINATE CONVERSION ──────────────────────────────
+// Swisstopo approximate formulas (accuracy ~1m, sufficient for elevation lookup)
+function wgs84ToLV95(lat, lon) {
+  const phi = (lat * 3600 - 169028.66) / 10000;
+  const lam = (lon * 3600 - 26782.5) / 10000;
+  const E = 2600072.37 + 211455.93 * lam - 10938.51 * lam * phi
+            - 0.36 * lam * phi * phi - 44.54 * lam * lam * lam;
+  const N = 1200147.07 + 308807.95 * phi + 3745.25 * lam * lam
+            + 76.63 * phi * phi - 194.56 * lam * lam * phi + 119.79 * phi * phi * phi;
+  return { E, N };
+}
+
+// Fetch ground elevation from Swisstopo height API
+async function fetchElevation(lat, lon) {
+  const { E, N } = wgs84ToLV95(lat, lon);
+  const url = `https://api3.geo.admin.ch/rest/services/height?easting=${E.toFixed(2)}&northing=${N.toFixed(2)}&sr=2056`;
+  const res = await fetch(url);
+  const data = await res.json();
+  return parseFloat(data.height) || 0;
+}
+
+// ── MAIN (async for API calls) ──────────────────────────────────────
+async function main() {
+
 // ── INDEX BUILDING FOOTPRINTS ────────────────────────────────────────
 const buildingBounds = {};
 for (const bf of buildingsGeo.features) {
@@ -47,6 +92,32 @@ for (const bf of buildingsGeo.features) {
     minLat: Math.min(...lats),
     maxLat: Math.max(...lats)
   };
+}
+
+// ── FETCH GROUND ELEVATIONS FROM SWISSTOPO ──────────────────────────
+console.log('Fetching ground elevations from Swisstopo API...');
+const buildingElevations = {};
+for (const bf of buildingsGeo.features) {
+  const bid = bf.properties.buildingId;
+  const [lon, lat] = bf.properties.centroid;
+  try {
+    const elev = await fetchElevation(lat, lon);
+    buildingElevations[bid] = elev;
+    console.log(`  ${bid}: ${elev} m`);
+  } catch (err) {
+    buildingElevations[bid] = 0;
+    console.warn(`  ⚠ ${bid}: API error, using 0m — ${err.message}`);
+  }
+}
+
+// Per-building minimum levelNumber (for stacking: lowest floor starts at base 0)
+const buildingMinLevel = {};
+for (const f of floorsGeoIn.features) {
+  const bid = f.properties.buildingId;
+  const lv = f.properties.levelNumber;
+  if (buildingMinLevel[bid] === undefined || lv < buildingMinLevel[bid]) {
+    buildingMinLevel[bid] = lv;
+  }
 }
 
 // ── GROUP ROOMS BY FLOOR ─────────────────────────────────────────────
@@ -86,17 +157,26 @@ function typeOrder(type) {
   return TYPE_ORDER[type] !== undefined ? TYPE_ORDER[type] : 50;
 }
 
-// ── GENERATE FLOORS (inset polygons) ─────────────────────────────────
+// ── GENERATE FLOORS (inset polygons + height properties) ─────────────
 const floorFeatures = floorsGeoIn.features.map(f => {
   const bid = f.properties.buildingId;
   const bb = buildingBounds[bid];
   if (!bb) return f; // fallback: keep original
 
+  const groundElev = buildingElevations[bid] || 0;
+  const minLevel = buildingMinLevel[bid] || 0;
+  const baseHeight = (f.properties.levelNumber - minLevel) * FLOOR_HEIGHT;
+
   // Inset by wall margin
   return {
     type: 'Feature',
     id: f.id,
-    properties: { ...f.properties },
+    properties: {
+      ...f.properties,
+      groundElevation: groundElev,
+      baseHeight,
+      topHeight: baseHeight + FLOOR_HEIGHT
+    },
     geometry: {
       type: 'Polygon',
       coordinates: [[
@@ -112,7 +192,17 @@ const floorFeatures = floorsGeoIn.features.map(f => {
 
 const floorsGeo = { type: 'FeatureCollection', features: floorFeatures };
 
-// ── GENERATE ROOMS (corridor layout) ─────────────────────────────────
+// Floor height lookup for rooms and assets
+const floorHeightMap = {};
+for (const ff of floorFeatures) {
+  floorHeightMap[ff.properties.floorId] = {
+    groundElevation: ff.properties.groundElevation,
+    baseHeight: ff.properties.baseHeight,
+    topHeight: ff.properties.topHeight
+  };
+}
+
+// ── GENERATE ROOMS (corridor layout + height properties) ─────────────
 const roomFeatures = [];
 
 for (const floorF of floorsGeoIn.features) {
@@ -123,6 +213,8 @@ for (const floorF of floorsGeoIn.features) {
 
   const bb = buildingBounds[buildingId];
   if (!bb) continue;
+
+  const fh = floorHeightMap[floorId] || { groundElevation: 0, baseHeight: 0, topHeight: FLOOR_HEIGHT };
 
   const centerLat = (bb.minLat + bb.maxLat) / 2;
 
@@ -208,7 +300,10 @@ for (const floorF of floorsGeoIn.features) {
           nr: room.nr,
           type: room.type,
           area: room.area,
-          workspaces: room.workspaces
+          workspaces: room.workspaces,
+          groundElevation: fh.groundElevation,
+          baseHeight: fh.baseHeight,
+          topHeight: fh.topHeight
         },
         geometry: {
           type: 'Polygon',
@@ -261,7 +356,10 @@ for (const floorF of floorsGeoIn.features) {
           nr: room.nr,
           type: room.type,
           area: room.area,
-          workspaces: room.workspaces
+          workspaces: room.workspaces,
+          groundElevation: fh.groundElevation,
+          baseHeight: fh.baseHeight,
+          topHeight: fh.topHeight
         },
         geometry: {
           type: 'Polygon',
@@ -388,6 +486,10 @@ for (const [roomId, items] of Object.entries(itemsByRoom)) {
     const centroidLng = round6((aMinLng + aMaxLng) / 2);
     const centroidLat = round6((aMinLat + aMaxLat) / 2);
 
+    // Height properties: asset sits on the floor surface
+    const fh = floorHeightMap[item.floorId] || { groundElevation: 0, baseHeight: 0, topHeight: FLOOR_HEIGHT };
+    const assetH = ASSET_HEIGHTS[item.categoryId] || DEFAULT_ASSET_HEIGHT;
+
     // Build properties — merge all fields from both source types
     const props = {
       assetId: item.itemId,
@@ -402,7 +504,10 @@ for (const [roomId, items] of Object.entries(itemsByRoom)) {
       condition: item.condition,
       acquisitionDate: item.acquisitionDate,
       acquisitionCost: item.acquisitionCost,
-      centroid: [centroidLng, centroidLat]
+      centroid: [centroidLng, centroidLat],
+      groundElevation: fh.groundElevation,
+      baseHeight: fh.baseHeight,
+      topHeight: fh.baseHeight + assetH
     };
     // Circular-specific fields
     if (item.price !== undefined) props.price = item.price;
@@ -440,12 +545,28 @@ for (const [roomId, items] of Object.entries(itemsByRoom)) {
 const assetsGeo = { type: 'FeatureCollection', features: assetFeatures };
 
 // ── WRITE FILES ──────────────────────────────────────────────────────
-// buildings.geojson is NOT written (read-only input)
+// Enrich buildings.geojson with groundElevation
+const enrichedBuildings = {
+  type: 'FeatureCollection',
+  features: buildingsGeo.features.map(f => ({
+    ...f,
+    properties: {
+      ...f.properties,
+      groundElevation: buildingElevations[f.properties.buildingId] || 0
+    }
+  }))
+};
+
+fs.writeFileSync(path.join(dataDir, 'buildings.geojson'), JSON.stringify(enrichedBuildings, null, 2));
 fs.writeFileSync(path.join(dataDir, 'floors.geojson'), JSON.stringify(floorsGeo, null, 2));
 fs.writeFileSync(path.join(dataDir, 'rooms.geojson'), JSON.stringify(roomsGeo, null, 2));
 fs.writeFileSync(path.join(dataDir, 'assets.geojson'), JSON.stringify(assetsGeo, null, 2));
 
-console.log(`✓ floors.geojson:  ${floorFeatures.length} features (inset polygons)`);
-console.log(`✓ rooms.geojson:   ${roomFeatures.length} features (corridor layout)`);
-console.log(`✓ assets.geojson:  ${assetFeatures.length} features (positioned in rooms)`);
-console.log(`  buildings.geojson: unchanged (${buildingsGeo.features.length} features)`);
+console.log(`✓ buildings.geojson: ${enrichedBuildings.features.length} features (+ groundElevation)`);
+console.log(`✓ floors.geojson:  ${floorFeatures.length} features (inset polygons + height)`);
+console.log(`✓ rooms.geojson:   ${roomFeatures.length} features (corridor layout + height)`);
+console.log(`✓ assets.geojson:  ${assetFeatures.length} features (positioned in rooms + height)`);
+
+} // end main
+
+main().catch(err => { console.error(err); process.exit(1); });

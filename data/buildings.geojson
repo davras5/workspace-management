@@ -24,7 +24,8 @@
         "status": "Gebäude bestehend",
         "category": "Verwaltungsgebäude",
         "areaGross": 12450,
-        "photo": "photo-1486406146926-c627a92ad1ab"
+        "photo": "photo-1486406146926-c627a92ad1ab",
+        "groundElevation": 540.3
       },
       "geometry": {
         "type": "Polygon",
@@ -77,7 +78,8 @@
         "status": "Gebäude bestehend",
         "category": "Verwaltungsgebäude",
         "areaGross": 9800,
-        "photo": "photo-1577495508048-b635879837f1"
+        "photo": "photo-1577495508048-b635879837f1",
+        "groundElevation": 543
       },
       "geometry": {
         "type": "Polygon",
@@ -130,7 +132,8 @@
         "status": "Gebäude bestehend",
         "category": "Verwaltungsgebäude",
         "areaGross": 8200,
-        "photo": "photo-1554435493-93422e8220c8"
+        "photo": "photo-1554435493-93422e8220c8",
+        "groundElevation": 530.6
       },
       "geometry": {
         "type": "Polygon",
@@ -183,7 +186,8 @@
         "status": "Gebäude bestehend",
         "category": "Verwaltungsgebäude",
         "areaGross": 4600,
-        "photo": "photo-1497366811353-6870744d04b2"
+        "photo": "photo-1497366811353-6870744d04b2",
+        "groundElevation": 436.6
       },
       "geometry": {
         "type": "Polygon",
@@ -236,7 +240,8 @@
         "status": "Gebäude bestehend",
         "category": "Spezialgebäude",
         "areaGross": 6200,
-        "photo": "photo-1497215842964-222b430dc094"
+        "photo": "photo-1497215842964-222b430dc094",
+        "groundElevation": 402.8
       },
       "geometry": {
         "type": "Polygon",
@@ -289,7 +294,8 @@
         "status": "Gebäude bestehend",
         "category": "Verwaltungsgebäude",
         "areaGross": 5100,
-        "photo": "photo-1497366216548-37526070297c"
+        "photo": "photo-1497366216548-37526070297c",
+        "groundElevation": 277.8
       },
       "geometry": {
         "type": "Polygon",
@@ -342,7 +348,8 @@
         "status": "Gebäude bestehend",
         "category": "Verwaltungsgebäude",
         "areaGross": 3800,
-        "photo": "photo-1524758631624-e2822e304c36"
+        "photo": "photo-1524758631624-e2822e304c36",
+        "groundElevation": 435.6
       },
       "geometry": {
         "type": "Polygon",

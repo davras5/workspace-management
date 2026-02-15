@@ -13,7 +13,10 @@
         "verticalOrder": -1,
         "areaGross": 1820,
         "workspaceCount": 0,
-        "roomCount": 14
+        "roomCount": 14,
+        "groundElevation": 540.3,
+        "baseHeight": 0,
+        "topHeight": 3.5
       },
       "geometry": {
         "type": "Polygon",
@@ -55,7 +58,10 @@
         "verticalOrder": 0,
         "areaGross": 2650,
         "workspaceCount": 42,
-        "roomCount": 22
+        "roomCount": 22,
+        "groundElevation": 540.3,
+        "baseHeight": 3.5,
+        "topHeight": 7
       },
       "geometry": {
         "type": "Polygon",
@@ -97,7 +103,10 @@
         "verticalOrder": 1,
         "areaGross": 2650,
         "workspaceCount": 58,
-        "roomCount": 24
+        "roomCount": 24,
+        "groundElevation": 540.3,
+        "baseHeight": 7,
+        "topHeight": 10.5
       },
       "geometry": {
         "type": "Polygon",
@@ -139,7 +148,10 @@
         "verticalOrder": 2,
         "areaGross": 2650,
         "workspaceCount": 56,
-        "roomCount": 23
+        "roomCount": 23,
+        "groundElevation": 540.3,
+        "baseHeight": 10.5,
+        "topHeight": 14
       },
       "geometry": {
         "type": "Polygon",
@@ -181,7 +193,10 @@
         "verticalOrder": 3,
         "areaGross": 1680,
         "workspaceCount": 34,
-        "roomCount": 18
+        "roomCount": 18,
+        "groundElevation": 540.3,
+        "baseHeight": 14,
+        "topHeight": 17.5
       },
       "geometry": {
         "type": "Polygon",
@@ -223,7 +238,10 @@
         "verticalOrder": 0,
         "areaGross": 2100,
         "workspaceCount": 30,
-        "roomCount": 18
+        "roomCount": 18,
+        "groundElevation": 543,
+        "baseHeight": 0,
+        "topHeight": 3.5
       },
       "geometry": {
         "type": "Polygon",
@@ -265,7 +283,10 @@
         "verticalOrder": 1,
         "areaGross": 2100,
         "workspaceCount": 44,
-        "roomCount": 20
+        "roomCount": 20,
+        "groundElevation": 543,
+        "baseHeight": 3.5,
+        "topHeight": 7
       },
       "geometry": {
         "type": "Polygon",
@@ -307,7 +328,10 @@
         "verticalOrder": 2,
         "areaGross": 2100,
         "workspaceCount": 40,
-        "roomCount": 19
+        "roomCount": 19,
+        "groundElevation": 543,
+        "baseHeight": 7,
+        "topHeight": 10.5
       },
       "geometry": {
         "type": "Polygon",
@@ -349,7 +373,10 @@
         "verticalOrder": -1,
         "areaGross": 1200,
         "workspaceCount": 0,
-        "roomCount": 8
+        "roomCount": 8,
+        "groundElevation": 530.6,
+        "baseHeight": 0,
+        "topHeight": 3.5
       },
       "geometry": {
         "type": "Polygon",
@@ -391,7 +418,10 @@
         "verticalOrder": 0,
         "areaGross": 1750,
         "workspaceCount": 28,
-        "roomCount": 16
+        "roomCount": 16,
+        "groundElevation": 530.6,
+        "baseHeight": 3.5,
+        "topHeight": 7
       },
       "geometry": {
         "type": "Polygon",
@@ -433,7 +463,10 @@
         "verticalOrder": 1,
         "areaGross": 1750,
         "workspaceCount": 48,
-        "roomCount": 20
+        "roomCount": 20,
+        "groundElevation": 530.6,
+        "baseHeight": 7,
+        "topHeight": 10.5
       },
       "geometry": {
         "type": "Polygon",
@@ -475,7 +508,10 @@
         "verticalOrder": 2,
         "areaGross": 1750,
         "workspaceCount": 46,
-        "roomCount": 19
+        "roomCount": 19,
+        "groundElevation": 530.6,
+        "baseHeight": 10.5,
+        "topHeight": 14
       },
       "geometry": {
         "type": "Polygon",
@@ -517,7 +553,10 @@
         "verticalOrder": 0,
         "areaGross": 1150,
         "workspaceCount": 18,
-        "roomCount": 12
+        "roomCount": 12,
+        "groundElevation": 436.6,
+        "baseHeight": 0,
+        "topHeight": 3.5
       },
       "geometry": {
         "type": "Polygon",
@@ -559,7 +598,10 @@
         "verticalOrder": 1,
         "areaGross": 1150,
         "workspaceCount": 24,
-        "roomCount": 14
+        "roomCount": 14,
+        "groundElevation": 436.6,
+        "baseHeight": 3.5,
+        "topHeight": 7
       },
       "geometry": {
         "type": "Polygon",
@@ -601,7 +643,10 @@
         "verticalOrder": 2,
         "areaGross": 1150,
         "workspaceCount": 22,
-        "roomCount": 13
+        "roomCount": 13,
+        "groundElevation": 436.6,
+        "baseHeight": 7,
+        "topHeight": 10.5
       },
       "geometry": {
         "type": "Polygon",
@@ -643,7 +688,10 @@
         "verticalOrder": 0,
         "areaGross": 2100,
         "workspaceCount": 10,
-        "roomCount": 8
+        "roomCount": 8,
+        "groundElevation": 402.8,
+        "baseHeight": 0,
+        "topHeight": 3.5
       },
       "geometry": {
         "type": "Polygon",
@@ -685,7 +733,10 @@
         "verticalOrder": 1,
         "areaGross": 2050,
         "workspaceCount": 12,
-        "roomCount": 10
+        "roomCount": 10,
+        "groundElevation": 402.8,
+        "baseHeight": 3.5,
+        "topHeight": 7
       },
       "geometry": {
         "type": "Polygon",
@@ -727,7 +778,10 @@
         "verticalOrder": 0,
         "areaGross": 1275,
         "workspaceCount": 20,
-        "roomCount": 14
+        "roomCount": 14,
+        "groundElevation": 277.8,
+        "baseHeight": 0,
+        "topHeight": 3.5
       },
       "geometry": {
         "type": "Polygon",
@@ -769,7 +823,10 @@
         "verticalOrder": 1,
         "areaGross": 1275,
         "workspaceCount": 28,
-        "roomCount": 16
+        "roomCount": 16,
+        "groundElevation": 277.8,
+        "baseHeight": 3.5,
+        "topHeight": 7
       },
       "geometry": {
         "type": "Polygon",
@@ -811,7 +868,10 @@
         "verticalOrder": 2,
         "areaGross": 1275,
         "workspaceCount": 26,
-        "roomCount": 15
+        "roomCount": 15,
+        "groundElevation": 277.8,
+        "baseHeight": 7,
+        "topHeight": 10.5
       },
       "geometry": {
         "type": "Polygon",
@@ -853,7 +913,10 @@
         "verticalOrder": 0,
         "areaGross": 950,
         "workspaceCount": 14,
-        "roomCount": 10
+        "roomCount": 10,
+        "groundElevation": 435.6,
+        "baseHeight": 0,
+        "topHeight": 3.5
       },
       "geometry": {
         "type": "Polygon",
@@ -895,7 +958,10 @@
         "verticalOrder": 1,
         "areaGross": 950,
         "workspaceCount": 20,
-        "roomCount": 12
+        "roomCount": 12,
+        "groundElevation": 435.6,
+        "baseHeight": 3.5,
+        "topHeight": 7
       },
       "geometry": {
         "type": "Polygon",
@@ -937,7 +1003,10 @@
         "verticalOrder": 2,
         "areaGross": 950,
         "workspaceCount": 18,
-        "roomCount": 11
+        "roomCount": 11,
+        "groundElevation": 435.6,
+        "baseHeight": 7,
+        "topHeight": 10.5
       },
       "geometry": {
         "type": "Polygon",

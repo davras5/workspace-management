@@ -21,6 +21,9 @@
           7.447142,
           46.947984
         ],
+        "groundElevation": 540.3,
+        "baseHeight": 3.5,
+        "topHeight": 3.95,
         "productId": 1
       },
       "geometry": {
@@ -71,6 +74,9 @@
           7.447154,
           46.947984
         ],
+        "groundElevation": 540.3,
+        "baseHeight": 3.5,
+        "topHeight": 3.95,
         "productId": 1
       },
       "geometry": {
@@ -121,6 +127,9 @@
           7.447173,
           46.947982
         ],
+        "groundElevation": 540.3,
+        "baseHeight": 3.5,
+        "topHeight": 4.25,
         "productId": null
       },
       "geometry": {
@@ -171,6 +180,9 @@
           7.44719,
           46.947985
         ],
+        "groundElevation": 540.3,
+        "baseHeight": 3.5,
+        "topHeight": 3.8,
         "productId": null
       },
       "geometry": {
@@ -221,6 +233,9 @@
           7.446956,
           46.948057
         ],
+        "groundElevation": 540.3,
+        "baseHeight": 3.5,
+        "topHeight": 5,
         "productId": null
       },
       "geometry": {
@@ -271,6 +286,9 @@
           7.447514,
           46.948056
         ],
+        "groundElevation": 540.3,
+        "baseHeight": 3.5,
+        "topHeight": 4.4,
         "productId": null
       },
       "geometry": {
@@ -321,6 +339,9 @@
           7.447428,
           46.947985
         ],
+        "groundElevation": 540.3,
+        "baseHeight": 3.5,
+        "topHeight": 3.9,
         "productId": null
       },
       "geometry": {
@@ -371,6 +392,9 @@
           7.447166,
           46.947984
         ],
+        "groundElevation": 540.3,
+        "baseHeight": 7,
+        "topHeight": 7.45,
         "productId": 1
       },
       "geometry": {
@@ -421,6 +445,9 @@
           7.447185,
           46.947982
         ],
+        "groundElevation": 540.3,
+        "baseHeight": 7,
+        "topHeight": 7.75,
         "productId": null
       },
       "geometry": {
@@ -471,6 +498,9 @@
           7.44695,
           46.948057
         ],
+        "groundElevation": 540.3,
+        "baseHeight": 7,
+        "topHeight": 7.3,
         "productId": null
       },
       "geometry": {
@@ -521,6 +551,9 @@
           7.447124,
           46.948058
         ],
+        "groundElevation": 540.3,
+        "baseHeight": 7,
+        "topHeight": 7.5,
         "productId": null
       },
       "geometry": {
@@ -571,6 +604,9 @@
           7.447085,
           46.947984
         ],
+        "groundElevation": 540.3,
+        "baseHeight": 7,
+        "topHeight": 7.45,
         "productId": null
       },
       "geometry": {
@@ -618,9 +654,12 @@
         "acquisitionDate": "2022-06-14",
         "acquisitionCost": 450,
         "centroid": [
-          7.44384,
-          46.946856
+          7.443814,
+          46.946784
         ],
+        "groundElevation": 543,
+        "baseHeight": 0,
+        "topHeight": 0.45,
         "productId": null
       },
       "geometry": {
@@ -628,24 +667,24 @@
         "coordinates": [
           [
             [
-              7.443836,
-              46.946854
+              7.44381,
+              46.946782
             ],
             [
-              7.443843,
-              46.946854
+              7.443817,
+              46.946782
             ],
             [
-              7.443843,
-              46.946858
+              7.443817,
+              46.946786
             ],
             [
-              7.443836,
-              46.946858
+              7.44381,
+              46.946786
             ],
             [
-              7.443836,
-              46.946854
+              7.44381,
+              46.946782
             ]
           ]
         ]
@@ -668,9 +707,12 @@
         "acquisitionDate": "2022-06-14",
         "acquisitionCost": 450,
         "centroid": [
-          7.44385,
-          46.946856
+          7.443824,
+          46.946784
         ],
+        "groundElevation": 543,
+        "baseHeight": 0,
+        "topHeight": 0.45,
         "productId": null
       },
       "geometry": {
@@ -678,24 +720,24 @@
         "coordinates": [
           [
             [
-              7.443847,
-              46.946854
+              7.443821,
+              46.946782
             ],
             [
-              7.443853,
-              46.946854
+              7.443827,
+              46.946782
             ],
             [
-              7.443853,
-              46.946858
+              7.443827,
+              46.946786
             ],
             [
-              7.443847,
-              46.946858
+              7.443821,
+              46.946786
             ],
             [
-              7.443847,
-              46.946854
+              7.443821,
+              46.946782
             ]
           ]
         ]
@@ -721,6 +763,9 @@
           7.443783,
           46.946856
         ],
+        "groundElevation": 543,
+        "baseHeight": 0,
+        "topHeight": 0.6,
         "productId": null
       },
       "geometry": {
@@ -768,9 +813,12 @@
         "acquisitionDate": "2023-03-10",
         "acquisitionCost": 4500,
         "centroid": [
-          7.44387,
-          46.946785
+          7.443871,
+          46.946856
         ],
+        "groundElevation": 543,
+        "baseHeight": 3.5,
+        "topHeight": 3.9,
         "productId": null
       },
       "geometry": {
@@ -778,24 +826,24 @@
         "coordinates": [
           [
             [
-              7.443864,
-              46.946783
+              7.443865,
+              46.946855
             ],
             [
-              7.443875,
-              46.946783
+              7.443876,
+              46.946855
             ],
             [
-              7.443875,
-              46.946786
+              7.443876,
+              46.946858
             ],
             [
-              7.443864,
-              46.946786
+              7.443865,
+              46.946858
             ],
             [
-              7.443864,
-              46.946783
+              7.443865,
+              46.946855
             ]
           ]
         ]
@@ -821,6 +869,9 @@
           8.527732,
           47.344055
         ],
+        "groundElevation": 436.6,
+        "baseHeight": 0,
+        "topHeight": 0.75,
         "productId": null
       },
       "geometry": {
@@ -871,6 +922,9 @@
           8.52775,
           47.344057
         ],
+        "groundElevation": 436.6,
+        "baseHeight": 0,
+        "topHeight": 0.3,
         "productId": null
       },
       "geometry": {
@@ -921,6 +975,9 @@
           8.527719,
           47.344057
         ],
+        "groundElevation": 436.6,
+        "baseHeight": 3.5,
+        "topHeight": 3.8,
         "productId": null
       },
       "geometry": {
@@ -971,6 +1028,9 @@
           8.52765,
           47.344055
         ],
+        "groundElevation": 436.6,
+        "baseHeight": 3.5,
+        "topHeight": 3.95,
         "productId": null
       },
       "geometry": {
@@ -1021,6 +1081,9 @@
           8.527669,
           47.344055
         ],
+        "groundElevation": 436.6,
+        "baseHeight": 3.5,
+        "topHeight": 4.25,
         "price": 120,
         "currency": "CHF",
         "description": "140×70 cm, höhenverstellbar (mechanisch), Tischplatte Eiche natur. Guter Zustand, minimale Kratzer.",
@@ -1083,6 +1146,9 @@
           7.588532,
           47.549984
         ],
+        "groundElevation": 277.8,
+        "baseHeight": 0,
+        "topHeight": 0.9,
         "productId": null
       },
       "geometry": {
@@ -1133,6 +1199,9 @@
           7.588373,
           47.549984
         ],
+        "groundElevation": 277.8,
+        "baseHeight": 3.5,
+        "topHeight": 5,
         "productId": null
       },
       "geometry": {
@@ -1183,6 +1252,9 @@
           7.588232,
           47.550057
         ],
+        "groundElevation": 277.8,
+        "baseHeight": 3.5,
+        "topHeight": 3.9,
         "productId": null
       },
       "geometry": {
@@ -1233,6 +1305,9 @@
           7.588244,
           47.550056
         ],
+        "groundElevation": 277.8,
+        "baseHeight": 3.5,
+        "topHeight": 3.95,
         "price": 25,
         "currency": "CHF",
         "description": "Stoff blau, kaum Gebrauchsspuren. 4 Stück verfügbar, stapelbar.",
@@ -1296,6 +1371,9 @@
           8.308983,
           47.050184
         ],
+        "groundElevation": 435.6,
+        "baseHeight": 0,
+        "topHeight": 0.45,
         "productId": null
       },
       "geometry": {
@@ -1346,6 +1424,9 @@
           8.308994,
           47.050185
         ],
+        "groundElevation": 435.6,
+        "baseHeight": 0,
+        "topHeight": 0.3,
         "productId": null
       },
       "geometry": {
@@ -1396,6 +1477,9 @@
           8.308989,
           47.050183
         ],
+        "groundElevation": 435.6,
+        "baseHeight": 7,
+        "topHeight": 7.75,
         "productId": null
       },
       "geometry": {
@@ -1446,6 +1530,9 @@
           8.309006,
           47.050184
         ],
+        "groundElevation": 435.6,
+        "baseHeight": 7,
+        "topHeight": 7.6,
         "price": 190,
         "currency": "CHF",
         "description": "3 Schubladen, reinweiss, Rollen einwandfrei. Leichte Kratzer an der Oberseite.",
@@ -1507,6 +1594,9 @@
           8.308983,
           47.050256
         ],
+        "groundElevation": 435.6,
+        "baseHeight": 7,
+        "topHeight": 7.45,
         "productId": null
       },
       "geometry": {
@@ -1557,6 +1647,9 @@
           7.446948,
           46.947985
         ],
+        "groundElevation": 540.3,
+        "baseHeight": 10.5,
+        "topHeight": 10.9,
         "productId": null
       },
       "geometry": {
@@ -1604,9 +1697,12 @@
         "acquisitionDate": "2023-07-10",
         "acquisitionCost": 1150,
         "centroid": [
-          7.447382,
-          46.948056
+          7.447365,
+          46.947984
         ],
+        "groundElevation": 540.3,
+        "baseHeight": 10.5,
+        "topHeight": 10.95,
         "productId": null
       },
       "geometry": {
@@ -1614,24 +1710,24 @@
         "coordinates": [
           [
             [
-              7.447378,
-              46.948053
+              7.447361,
+              46.947981
             ],
             [
-              7.447386,
-              46.948053
+              7.447369,
+              46.947981
             ],
             [
-              7.447386,
-              46.948058
+              7.447369,
+              46.947986
             ],
             [
-              7.447378,
-              46.948058
+              7.447361,
+              46.947986
             ],
             [
-              7.447378,
-              46.948053
+              7.447361,
+              46.947981
             ]
           ]
         ]
@@ -1654,9 +1750,12 @@
         "acquisitionDate": "2019-03-15",
         "acquisitionCost": 890,
         "centroid": [
-          7.447394,
-          46.948056
+          7.447377,
+          46.947984
         ],
+        "groundElevation": 540.3,
+        "baseHeight": 10.5,
+        "topHeight": 10.95,
         "price": 45,
         "currency": "CHF",
         "description": "Modell 64, guter Zustand, gereinigt. Armlehnen höhenverstellbar, Lordosenstütze intakt.",
@@ -1676,24 +1775,24 @@
         "coordinates": [
           [
             [
-              7.44739,
-              46.948053
+              7.447373,
+              46.947981
             ],
             [
-              7.447398,
-              46.948053
+              7.447381,
+              46.947981
             ],
             [
-              7.447398,
-              46.948058
+              7.447381,
+              46.947986
             ],
             [
-              7.44739,
-              46.948058
+              7.447373,
+              46.947986
             ],
             [
-              7.44739,
-              46.948053
+              7.447373,
+              46.947981
             ]
           ]
         ]
@@ -1719,6 +1818,9 @@
           8.516621,
           47.388985
         ],
+        "groundElevation": 402.8,
+        "baseHeight": 0,
+        "topHeight": 0.4,
         "productId": null
       },
       "geometry": {
@@ -1769,6 +1871,9 @@
           8.516779,
           47.389056
         ],
+        "groundElevation": 402.8,
+        "baseHeight": 0,
+        "topHeight": 0.9,
         "productId": null
       },
       "geometry": {
@@ -1816,9 +1921,12 @@
         "acquisitionDate": "2019-02-10",
         "acquisitionCost": 1850,
         "centroid": [
-          7.447107,
-          46.948057
+          7.447104,
+          46.947985
         ],
+        "groundElevation": 540.3,
+        "baseHeight": 0,
+        "topHeight": 1.5,
         "productId": null
       },
       "geometry": {
@@ -1826,24 +1934,24 @@
         "coordinates": [
           [
             [
-              7.447097,
-              46.948055
+              7.447094,
+              46.947983
             ],
             [
-              7.447117,
-              46.948055
+              7.447114,
+              46.947983
             ],
             [
-              7.447117,
-              46.948058
+              7.447114,
+              46.947986
             ],
             [
-              7.447097,
-              46.948058
+              7.447094,
+              46.947986
             ],
             [
-              7.447097,
-              46.948055
+              7.447094,
+              46.947983
             ]
           ]
         ]
@@ -1869,6 +1977,9 @@
           7.446981,
           46.948057
         ],
+        "groundElevation": 540.3,
+        "baseHeight": 0,
+        "topHeight": 0.4,
         "productId": null
       },
       "geometry": {
@@ -1919,6 +2030,9 @@
           7.443582,
           46.946856
         ],
+        "groundElevation": 543,
+        "baseHeight": 7,
+        "topHeight": 7.45,
         "productId": null
       },
       "geometry": {
@@ -1969,6 +2083,9 @@
           7.443601,
           46.946855
         ],
+        "groundElevation": 543,
+        "baseHeight": 7,
+        "topHeight": 7.75,
         "productId": null
       },
       "geometry": {
@@ -2019,6 +2136,9 @@
           7.443729,
           46.946857
         ],
+        "groundElevation": 543,
+        "baseHeight": 7,
+        "topHeight": 7.3,
         "productId": null
       },
       "geometry": {
@@ -2069,6 +2189,9 @@
           7.450621,
           46.944056
         ],
+        "groundElevation": 530.6,
+        "baseHeight": 0,
+        "topHeight": 0.45,
         "productId": null
       },
       "geometry": {
@@ -2119,6 +2242,9 @@
           7.450728,
           46.944056
         ],
+        "groundElevation": 530.6,
+        "baseHeight": 0,
+        "topHeight": 0.6,
         "productId": null
       },
       "geometry": {
@@ -2169,6 +2295,9 @@
           7.450593,
           46.944056
         ],
+        "groundElevation": 530.6,
+        "baseHeight": 7,
+        "topHeight": 7.45,
         "productId": null
       },
       "geometry": {
@@ -2216,9 +2345,12 @@
         "acquisitionDate": "2019-11-28",
         "acquisitionCost": 1100,
         "centroid": [
-          7.450767,
-          46.944055
+          7.450747,
+          46.943983
         ],
+        "groundElevation": 530.6,
+        "baseHeight": 7,
+        "topHeight": 7.75,
         "productId": null
       },
       "geometry": {
@@ -2226,24 +2358,24 @@
         "coordinates": [
           [
             [
-              7.450756,
-              46.944051
+              7.450736,
+              46.943979
             ],
             [
-              7.450777,
-              46.944051
+              7.450757,
+              46.943979
             ],
             [
-              7.450777,
-              46.944058
+              7.450757,
+              46.943986
             ],
             [
-              7.450756,
-              46.944058
+              7.450736,
+              46.943986
             ],
             [
-              7.450756,
-              46.944051
+              7.450736,
+              46.943979
             ]
           ]
         ]
@@ -2269,6 +2401,9 @@
           7.450824,
           46.944058
         ],
+        "groundElevation": 530.6,
+        "baseHeight": 7,
+        "topHeight": 7.5,
         "productId": null
       },
       "geometry": {
@@ -2319,6 +2454,9 @@
           7.450593,
           46.944056
         ],
+        "groundElevation": 530.6,
+        "baseHeight": 10.5,
+        "topHeight": 10.95,
         "productId": null
       },
       "geometry": {
@@ -2366,9 +2504,12 @@
         "acquisitionDate": "2022-08-14",
         "acquisitionCost": 680,
         "centroid": [
-          7.450752,
-          46.944057
+          7.45074,
+          46.943985
         ],
+        "groundElevation": 530.6,
+        "baseHeight": 10.5,
+        "topHeight": 10.8,
         "productId": null
       },
       "geometry": {
@@ -2376,24 +2517,24 @@
         "coordinates": [
           [
             [
-              7.450748,
-              46.944056
+              7.450736,
+              46.943984
             ],
             [
-              7.450755,
-              46.944056
+              7.450743,
+              46.943984
             ],
             [
-              7.450755,
-              46.944058
+              7.450743,
+              46.943986
             ],
             [
-              7.450748,
-              46.944058
+              7.450736,
+              46.943986
             ],
             [
-              7.450748,
-              46.944056
+              7.450736,
+              46.943984
             ]
           ]
         ]
@@ -2419,6 +2560,9 @@
           8.52765,
           47.344055
         ],
+        "groundElevation": 436.6,
+        "baseHeight": 7,
+        "topHeight": 7.45,
         "productId": null
       },
       "geometry": {
@@ -2469,6 +2613,9 @@
           8.527727,
           47.344056
         ],
+        "groundElevation": 436.6,
+        "baseHeight": 7,
+        "topHeight": 8.5,
         "productId": null
       },
       "geometry": {
@@ -2519,6 +2666,9 @@
           8.527777,
           47.344057
         ],
+        "groundElevation": 436.6,
+        "baseHeight": 7,
+        "topHeight": 7.3,
         "productId": null
       },
       "geometry": {
@@ -2569,6 +2719,9 @@
           8.516669,
           47.389056
         ],
+        "groundElevation": 402.8,
+        "baseHeight": 3.5,
+        "topHeight": 3.9,
         "productId": null
       },
       "geometry": {
@@ -2619,6 +2772,9 @@
           8.516496,
           47.389056
         ],
+        "groundElevation": 402.8,
+        "baseHeight": 3.5,
+        "topHeight": 3.95,
         "productId": null
       },
       "geometry": {
@@ -2669,6 +2825,9 @@
           7.588237,
           47.550055
         ],
+        "groundElevation": 277.8,
+        "baseHeight": 7,
+        "topHeight": 7.75,
         "productId": null
       },
       "geometry": {
@@ -2719,6 +2878,9 @@
           7.588349,
           47.550057
         ],
+        "groundElevation": 277.8,
+        "baseHeight": 7,
+        "topHeight": 7.3,
         "productId": null
       },
       "geometry": {
@@ -2769,6 +2931,9 @@
           7.588408,
           47.550057
         ],
+        "groundElevation": 277.8,
+        "baseHeight": 7,
+        "topHeight": 7.3,
         "productId": null
       },
       "geometry": {
@@ -2819,6 +2984,9 @@
           8.308983,
           47.050256
         ],
+        "groundElevation": 435.6,
+        "baseHeight": 3.5,
+        "topHeight": 3.95,
         "productId": null
       },
       "geometry": {
@@ -2869,6 +3037,9 @@
           8.309047,
           47.050256
         ],
+        "groundElevation": 435.6,
+        "baseHeight": 3.5,
+        "topHeight": 4.1,
         "productId": null
       },
       "geometry": {
@@ -2919,6 +3090,9 @@
           8.309101,
           47.050256
         ],
+        "groundElevation": 435.6,
+        "baseHeight": 3.5,
+        "topHeight": 4.4,
         "productId": null
       },
       "geometry": {
@@ -2969,6 +3143,9 @@
           7.44381,
           46.946785
         ],
+        "groundElevation": 543,
+        "baseHeight": 3.5,
+        "topHeight": 5,
         "price": 380,
         "currency": "CHF",
         "description": "2 Felder, 3 Reihen, lichtgrau. Leichte Gebrauchsspuren an den Kanten, Struktur einwandfrei.",
@@ -3031,6 +3208,9 @@
           7.450865,
           46.943984
         ],
+        "groundElevation": 530.6,
+        "baseHeight": 3.5,
+        "topHeight": 3.95,
         "price": 35,
         "currency": "CHF",
         "description": "Stoff grau, leichte Abnutzung an der Sitzfläche. Stapelbar, 4 Stück verfügbar.",
@@ -3093,6 +3273,9 @@
           7.447095,
           46.948058
         ],
+        "groundElevation": 540.3,
+        "baseHeight": 14,
+        "topHeight": 14.5,
         "price": 80,
         "currency": "CHF",
         "description": "Funktionstüchtig, leichte Kratzer am Fuss. Leuchtmittel (E27) nicht inbegriffen.",
