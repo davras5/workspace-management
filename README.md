@@ -1,4 +1,4 @@
-# BBL Workspace Management
+# Workspace Management
 
 ![KBOB BIM Data Catalog](assets/Preview3.jpg)
 
